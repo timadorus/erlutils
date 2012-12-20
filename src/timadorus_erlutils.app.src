@@ -1,0 +1,12 @@
+{application, timadorus_erlutils,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { timadorus_erlutils_app, []}},
+  {env, []}
+ ]}.
