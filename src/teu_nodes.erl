@@ -15,7 +15,7 @@
 %%
 %% Exported Functions
 %%
--export([split_node/1]).
+-export([split_node/1, split_node_to_atom/1]).
 
 %%
 %% API Functions
