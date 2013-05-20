@@ -39,7 +39,7 @@ initial_test_() ->
               ok
       end,
       fun(_Foo) -> [
-                    ?_test(test_split_node())
+                    ?_test(test_read_config())
                    ]
       end }.
 
@@ -48,7 +48,10 @@ initial_test_() ->
 %%
 %% Local Functions
 %%
-test_split_node() ->
-    ?assertMatch({"foo","bar"}, teu_nodes:split_node('foo@bar')),
-    ?assertMatch({foo, bar}, teu_nodes:split_node_to_atom('foo@bar')).
+test_read_config() ->
+	?assertEqual({ok, 2}, teu_application:get_env(test_dummy_par1, 3)),
+	?assertEqual({ok, 3}, teu_application:get_env(test_dummy_par2, 3)),
+
+	?assertEqual({ok, 2}, teu_application:get_env(par1, teu_app_test, 3)),
+	?assertEqual({ok, 3}, teu_application:get_env(par2, teu_app_test, 3)),
 

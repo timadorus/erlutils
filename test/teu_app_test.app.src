@@ -1,6 +1,6 @@
-{application, timadorus_erlutils,
+{application, teu_app_test,
  [
-  {description, ""},
+  {description, "This is a dummy application to test the function of the module teu_application"},
   {vsn, "1"},
   {registered, []},
   {applications, [
@@ -8,5 +8,5 @@
                   stdlib
                  ]},
   {mod, []},  % this app does not start any server/supervisor-tree
-  {env, [{test_dummy_par1, 2}]}
+  {env, [{par1, 2}]}
  ]}.
