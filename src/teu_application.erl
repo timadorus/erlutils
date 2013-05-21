@@ -9,10 +9,12 @@
 %% --------------------------------------------------------------------
 -include_lib("eunit/include/eunit.hrl").
 
+-type restart_type() :: permanent | transient | temporary.
+  
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get_env/2, get_env/3]).
+-export([get_env/2, get_env/3, remote_start/2, remote_start/3]).
 
 %% get_env/2
 %% ====================================================================
@@ -37,6 +39,22 @@ get_env(Par, App, Default) ->
 		{ok, Value} -> {ok, Value};
         _ ->           {ok, Default}
 	end.
+
+
+%% remote_start/2
+%% ====================================================================
+%% @doc start application on a (already running) remote node
+%%
+-spec remote_start(Node::atom(), Application::atom()) -> ok | {error, Reason::term()}.
+remote_start(Node, Application) -> remote_start(Node, Application, temporary).
+
+%% remote_start/3
+%% ====================================================================
+%% @doc start application on a (already running) remote node
+%%
+-spec remote_start(Node::atom(), Application::atom(), Type::restart_type()) -> ok | {error, Reason::term()}.
+remote_start(Node, Application, Type) -> 
+   rpc:block_call(Node, application, start, [Application, Type]).
 
 %% ====================================================================
 %% Internal functions

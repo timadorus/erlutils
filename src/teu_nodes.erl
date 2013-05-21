@@ -28,6 +28,9 @@ split_node_to_atom(NodeAndHost) ->
     {list_to_atom(Node), list_to_atom(Host)}.
 
 %% @doc slit the name of a node into node- and host part.
+%%
+%% the result is returned as a pair of strings
+%%
 -spec split_node(Node::atom()|string()) -> {NodeName::string(), HostName::string()}.
 split_node(Node) when is_atom(Node) ->
    split_node(atom_to_list(Node), []).
