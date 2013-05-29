@@ -14,7 +14,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get_env/2, get_env/3, remote_start/2, remote_start/3]).
+-export([get_env/2, get_env/3, remote_start/2, remote_start/3, opt/2, opt/3]).
 
 %% get_env/2
 %% ====================================================================
@@ -55,6 +55,34 @@ remote_start(Node, Application) -> remote_start(Node, Application, temporary).
 -spec remote_start(Node::atom(), Application::atom(), Type::restart_type()) -> ok | {error, Reason::term()}.
 remote_start(Node, Application, Type) -> 
    rpc:block_call(Node, application, start, [Application, Type]).
+
+
+%% opt/3
+%% ====================================================================
+%% @doc retrieve a named option from an option list.
+%%
+%% <p>The options must be given as list of name-value pairs. If only the name
+%% is given, it may serve as flag for a boolean value.</p>
+%%
+-spec opt(Name::atom(), Options::[{atom(), term()}|atom()], Default::term()) -> term().
+opt(Op, [{Op, Value}|_],_Default) ->
+    Value;
+opt(Op, [Op|_],_Default) ->
+    true;
+opt(Op, [_|Options],Default) ->
+    opt(Op, Options,Default);
+opt(_, [],Default) ->
+    Default.
+
+%% opt/2
+%% ====================================================================
+%% @doc handle a key-value map as the option directives
+%%
+%% <p>this function uses the atom false as the default value. Otherwise
+%% is is the same as opt/3
+-spec opt(Option::atom(), OptionList::[{atom(), term()}]) -> term().
+opt(Op, Options) -> opt(Op, Options, false). 
+
 
 %% ====================================================================
 %% Internal functions
