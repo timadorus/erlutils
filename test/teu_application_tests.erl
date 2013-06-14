@@ -56,28 +56,30 @@ test_read_config() ->
 %% 	?assertEqual({ok, 2}, teu_application:get_env(test_dummy_par1, 3)),
 %% 	?assertEqual({ok, 3}, teu_application:get_env(test_dummy_par2, 3)),
 
-	?assertEqual({ok, 2}, teu_application:get_env(par1, teu_app_test, 3)),
-	?assertEqual({ok, 3}, teu_application:get_env(par2, teu_app_test, 3)),
+    application:set_env(teu_app_test, par1, 2),
+	?assertEqual({ok, 2}, teu_application:get_env(teu_app_test, par1, 3)),
+    
+	?assertEqual({ok, 3}, teu_application:get_env(teu_app_test, par2, 3)),
     
     ok.
 
 -spec test_opt() -> ok.
 test_opt() ->
     
-%%  ?debugMsg("starting opt"),
+%%    ?debugMsg("starting opt"),
     
     Options = [register, {config, {1,2,3, [foo, bar]}}],
     
-    ?assertEqual(true, quperl_client:opt(register, Options, false)),
+    ?assertEqual(true, teu_application:opt(register, Options, false)),
 
-    ?assertEqual({1,2,3, [foo, bar]}, quperl_client:opt(config, Options, [])),
+    ?assertEqual({1,2,3, [foo, bar]}, teu_application:opt(config, Options, [])),
 
-    ?assertEqual(no_sir, quperl_client:opt(invalid, Options, no_sir)),
+    ?assertEqual(no_sir, teu_application:opt(invalid, Options, no_sir)),
     
-    ?assertEqual(false, quperl_client:opt(invalid, Options)),
+    ?assertEqual(false, teu_application:opt(invalid, Options)),
 
-    ?assertEqual(true, quperl_client:opt(register, Options)),
+    ?assertEqual(true, teu_application:opt(register, Options)),
 
-%%  ?debugHere,
+%%   ?debugHere,
   ok.
 

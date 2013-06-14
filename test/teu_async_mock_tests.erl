@@ -65,4 +65,19 @@ test_send_message() ->
 
 test_register() ->
 	
+    {ok, Pid} = teu_async_mock:start_link([register]),
+
+    ?assertEqual(Pid, whereis(teu_async_mock)),
+
+    teu_async_mock:stop(Pid),
+    sleep(100),
+    ?assertEqual(undefined, whereis(teu_async_mock)),
+
     ok.
+
+
+%% sleep for number of miliseconds
+sleep(T) ->
+  receive 
+    after T -> ok 
+  end.

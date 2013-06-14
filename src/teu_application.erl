@@ -33,9 +33,9 @@ get_env(Par, Default) ->
 %% @doc retrieve configuration value, returning provided default value,
 %%  if no value could be found in application configuration. 
 %%  (see application:get_env/1 and application:get_env/2 for more details).
--spec get_env(Par::atom(), App::atom(), Default::any()) -> {ok, Value::any()}.
-get_env(Par, App, Default) -> 
-	case application:get_env(Par, App) of
+-spec get_env(App::atom(), Par::atom(), Default::any()) -> {ok, Value::any()}.
+get_env(App, Par, Default) -> 
+	case application:get_env(App, Par) of
 		{ok, Value} -> {ok, Value};
         _ ->           {ok, Default}
 	end.
