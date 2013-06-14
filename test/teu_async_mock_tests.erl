@@ -65,13 +65,21 @@ test_send_message() ->
 
 test_register() ->
 	
-    {ok, Pid} = teu_async_mock:start_link([register]),
+    {ok, Pid1} = teu_async_mock:start_link([register]),
 
-    ?assertEqual(Pid, whereis(teu_async_mock)),
+    ?assertEqual(Pid1, whereis(teu_async_mock)),
 
-    teu_async_mock:stop(Pid),
+    teu_async_mock:stop(Pid1),
     sleep(100),
     ?assertEqual(undefined, whereis(teu_async_mock)),
+
+    {ok, Pid2} = teu_async_mock:start_link([{register, my_proc_name}]),
+
+    ?assertEqual(Pid2, whereis(my_proc_name)),
+
+    teu_async_mock:stop(Pid2),
+    sleep(100),
+    ?assertEqual(undefined, whereis(my_proc_name)),
 
     ok.
 
