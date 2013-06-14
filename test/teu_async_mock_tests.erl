@@ -5,7 +5,7 @@
 %%
 %% @copyright 2009-2012 Timadorus Project
 
--module(teu_nodes_tests).
+-module(teu_async_mock_tests).
 
 %%
 %% Include files
@@ -50,7 +50,7 @@ initial_test_() ->
 %% Local Functions
 %%
 test_send_message() ->
-	Res = teu_async_message:start_link([]),
+	Res = teu_async_mock:start_link([]),
 	?assertMatch({ok, _Pid}, Res),
 	{ok, Pid} = Res,
 	
@@ -59,7 +59,7 @@ test_send_message() ->
 	
 	gen_server:cast(Pid, test_message),
 	
-	?assertEqual(test_message, teu_async_message:last_message(Pid)),
+	?assertEqual(test_message, teu_async_mock:last_message(Pid)),
 	
     ok.
 

@@ -5,7 +5,7 @@
 %%
 %% @copyright 2009-2012 Timadorus Project
 
--module(teu_nodes_tests).
+-module(teu_application_tests).
 
 %%
 %% Include files
@@ -40,7 +40,7 @@ initial_test_() ->
       end,
       fun(_Foo) -> [
                     ?_test(test_read_config()),
-                    ?_test(test_opt()
+                    ?_test(test_opt())
                    ]
       end }.
 
@@ -49,15 +49,19 @@ initial_test_() ->
 %%
 %% Local Functions
 %%
--spec test_config() ->ok.
+-spec test_read_config() ->ok.
 test_read_config() ->
-	?assertEqual({ok, 2}, teu_application:get_env(test_dummy_par1, 3)),
-	?assertEqual({ok, 3}, teu_application:get_env(test_dummy_par2, 3)),
+    %% Fixme: cannot test, since this process does not belong to any app
+%%     application:set_env(App, test_dummy_par1, 2),
+%% 	?assertEqual({ok, 2}, teu_application:get_env(test_dummy_par1, 3)),
+%% 	?assertEqual({ok, 3}, teu_application:get_env(test_dummy_par2, 3)),
 
 	?assertEqual({ok, 2}, teu_application:get_env(par1, teu_app_test, 3)),
 	?assertEqual({ok, 3}, teu_application:get_env(par2, teu_app_test, 3)),
+    
+    ok.
 
--spec test_opt() ->ok.
+-spec test_opt() -> ok.
 test_opt() ->
     
 %%  ?debugMsg("starting opt"),
