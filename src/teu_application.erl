@@ -14,7 +14,8 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get_env/2, get_env/3, remote_start/2, remote_start/3, opt/2, opt/3]).
+-export([get_env/2, get_env/3, remote_start/2, remote_start/3, remote_load/2, 
+		 remote_set_env/4, remote_set_env/5, opt/2, opt/3]).
 
 %% get_env/2
 %% ====================================================================
@@ -43,19 +44,46 @@ get_env(App, Par, Default) ->
 
 %% remote_start/2
 %% ====================================================================
-%% @doc start application on a (already running) remote node
+%% @doc start application on an (already running) remote node
 %%
 -spec remote_start(Node::atom(), Application::atom()) -> ok | {error, Reason::term()}.
 remote_start(Node, Application) -> remote_start(Node, Application, temporary).
 
 %% remote_start/3
 %% ====================================================================
-%% @doc start application on a (already running) remote node
+%% @doc start application on an (already running) remote node
 %%
 -spec remote_start(Node::atom(), Application::atom(), Type::restart_type()) -> ok | {error, Reason::term()}.
 remote_start(Node, Application, Type) -> 
    rpc:block_call(Node, application, start, [Application, Type]).
 
+%% remote_load/2
+%% ====================================================================
+%% @doc load application on an (already running) remote node.
+%%
+%% Beyond the node, see application:load for argument details.
+%% @end
+-spec remote_load(Node::atom(), Application::term()) -> ok | {error, Reason::term()}.
+remote_load(Node, Application) -> rpc:block_call(Node, application, load, [Application]).
+
+%% remote_set_env/4
+%% ====================================================================
+%% @doc set env values for a remote  application on an (already running) remote node
+%%
+-spec remote_set_env(Node::atom(), Application::atom(), Key::atom(), Val::term()) -> 
+		  ok | {error, Reason::term()}.
+remote_set_env(Node, Application, Key, Val) ->
+   rpc:block_call(Node, application, set_env, [Application, Par, Val]).
+
+%% remote_set_env/5
+%% ====================================================================
+%% @doc set env values for a remote  application on an (already running) remote node
+%%
+-spec remote_set_env(Node::atom(), Application::atom(), Key::atom(), Val::term(), 
+					 Timeout::pos_integer()) -> 
+		  ok | {error, Reason::term()}.
+remote_set_env(Node, Application, Key, Val, Timeout) ->
+   rpc:block_call(Node, application, set_env, [Application, Par, Val, Timeout]).
 
 %% opt/3
 %% ====================================================================
