@@ -73,7 +73,7 @@ remote_load(Node, Application) -> rpc:block_call(Node, application, load, [Appli
 -spec remote_set_env(Node::atom(), Application::atom(), Key::atom(), Val::term()) -> 
 		  ok | {error, Reason::term()}.
 remote_set_env(Node, Application, Key, Val) ->
-   rpc:block_call(Node, application, set_env, [Application, Par, Val]).
+   rpc:block_call(Node, application, set_env, [Application, Key, Val]).
 
 %% remote_set_env/5
 %% ====================================================================
@@ -83,7 +83,7 @@ remote_set_env(Node, Application, Key, Val) ->
 					 Timeout::pos_integer()) -> 
 		  ok | {error, Reason::term()}.
 remote_set_env(Node, Application, Key, Val, Timeout) ->
-   rpc:block_call(Node, application, set_env, [Application, Par, Val, Timeout]).
+   rpc:block_call(Node, application, set_env, [Application, Key, Val, Timeout]).
 
 %% opt/3
 %% ====================================================================
