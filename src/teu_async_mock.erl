@@ -15,12 +15,12 @@
 %% --------------------------------------------------------------------
 %% External exports
 %% --------------------------------------------------------------------
--export([start_link/1, last_message/1, stop/1]).
+-export([start_link/1, last_message/1, message_stack/1, stop/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(state, {lastMessage}).
+-record(state, {lastMessage, messageStack}).
 
 %% ====================================================================
 %% External functions
@@ -48,11 +48,29 @@ start_link(Options) ->
     end.
 
 
+%% last_message/1
+%% --------------------------------------------------------------------
+%% @doc return the last message recieved by the mock.
+%% @end
+%% --------------------------------------------------------------------
 -spec last_message(Pid::pid()) -> term().
 last_message(Pid) ->
     gen_server:call(Pid, get_last).
 
+%% message_stack/1
+%% --------------------------------------------------------------------
+%% @doc return the messages retrieved by the mock, as a list, last message first.
+%% @end
+%% --------------------------------------------------------------------
+-spec message_stack(Pid::pid()) -> term().
+message_stack(Pid) ->
+    gen_server:call(Pid, get_stack).
 
+%% stop/1
+%% --------------------------------------------------------------------
+%% @doc stop the process
+%% @end
+%% --------------------------------------------------------------------
 -spec stop(Pid::pid()) -> ok.
 stop(Pid) -> gen_server:cast(Pid, stop).
 
@@ -70,7 +88,7 @@ stop(Pid) -> gen_server:cast(Pid, stop).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([]) ->
-    {ok, #state{}}.
+    {ok, #state{messageStack=[]}}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -83,8 +101,12 @@ init([]) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_call(get_last, _From, State) ->
-    ?debugFmt("quperl_client_mock:handle_call called for: get_last",[]),
+%%     ?debugFmt("teu_async_mock:handle_call called for: get_last",[]),
     {reply, State#state.lastMessage, State};
+
+handle_call(get_stack, _From, State) ->
+%%     ?debugFmt("teu_async_mock:handle_call called for: get_last",[]),
+    {reply, State#state.messageStack, State};
 
 handle_call(Request, _From, State) ->
     ?debugFmt("unknown message: ~p", [Request]),
@@ -102,7 +124,8 @@ handle_cast(stop, State) ->
 
 handle_cast(Msg, State) ->
     ?debugFmt("have seen message: ~p",[Msg]),
-    {noreply, State#state{lastMessage = Msg}}.
+    OldStack = State#state.messageStack,
+    {noreply, State#state{lastMessage = Msg, messageStack = [Msg|OldStack]}}.
 
 
 %% --------------------------------------------------------------------

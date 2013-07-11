@@ -40,6 +40,7 @@ initial_test_() ->
       end,
       fun(_Foo) -> [
                     ?_test(test_send_message()),
+                    ?_test(test_stack()),
                     ?_test(test_register())
                    ]
       end }.
@@ -61,6 +62,15 @@ test_send_message() ->
 	
 	?assertEqual(test_message, teu_async_mock:last_message(Pid)),
 	
+    ok.
+
+test_stack() ->
+    {ok, Pid} = teu_async_mock:start_link([]),
+    
+    gen_server:cast(Pid, {message, 1}),
+    gen_server:cast(Pid, another_message),
+    
+    ?assertEqual([another_message, {message, 1}], teu_async_mock:message_stack(Pid)),
     ok.
 
 test_register() ->
