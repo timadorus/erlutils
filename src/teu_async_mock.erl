@@ -110,7 +110,7 @@ handle_call(get_stack, _From, State) ->
 
 handle_call(Request, _From, State) ->
     ?debugFmt("unknown message: ~p", [Request]),
-    {reply, {unknown_message, Request}, error, State}.
+    {reply, {error, {unknown_message, Request}}, State}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_cast/2

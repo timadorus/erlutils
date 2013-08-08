@@ -41,7 +41,8 @@ initial_test_() ->
       fun(_Foo) -> [
                     ?_test(test_send_message()),
                     ?_test(test_stack()),
-                    ?_test(test_register())
+                    ?_test(test_register()),
+					?_test(test_errenous_call_msg())
                    ]
       end }.
 
@@ -93,6 +94,13 @@ test_register() ->
 
     ok.
 
+test_errenous_call_msg() ->
+    {ok, Pid} = teu_async_mock:start_link([]),
+	
+	 gen_server:call(Pid, this_is_a_message_i_am_very_unlikely_to_ever_use),
+	
+	teu_async_mock:stop(Pid),
+	ok.
 
 %% sleep for number of miliseconds
 sleep(T) ->
