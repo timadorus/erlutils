@@ -16,6 +16,11 @@
 -export([percentile/2, percentile95/1,percentile98/1]).
 -export([test_avg/5, test_avg_func/7, test_avg_list/5]).
 
+-ifdef(TEST).
+%% export the private functions for testing only.
+-export([test_calc/2]).
+-endif.
+
 %% test_avg/5
 %% ----------------------------------------------------------------------------
 %% @doc run function N number of times, 
@@ -145,13 +150,13 @@ test_calc(Title, L) ->
     Length = length(L),
     Min = lists:min(L),
     Max = lists:max(L),
-    P10 = percentile(L, 0.1),
-    P90 = percentile(L, 0.9),
+    P10 = round(percentile(L, 0.1)),
+    P90 = round(percentile(L, 0.9)),
     Med = lists:nth(round((Length / 2)), lists:sort(L)),
     Avg = round(lists:foldl(fun(X, Sum) -> X + Sum end, 0, L) / Length),
-    io:format("Performance for ~p",[Title]),
+    io:format("Performance for ~p~n",[Title]),
     io:format("Range: ~b - ~b mics~n"
-              "P10: ~b, P90: ~b"
+              "P10: ~b, P90: ~b~n"
               "Median: ~b mics~n"
               "Average: ~b mics~n",
                       [Min, Max, P10, P90, Med, Avg]),
