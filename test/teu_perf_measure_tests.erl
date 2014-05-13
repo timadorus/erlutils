@@ -47,6 +47,4 @@ initial_test_() ->
 %%
 test_test_calc() ->
 	 _Ret = teu_perf_measure:test_calc("A Test", [1,2,3,4,5,6,7,8,9,10]),
-
-    1=2,
 	ok.
