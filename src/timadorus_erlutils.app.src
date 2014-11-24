@@ -1,7 +1,7 @@
 {application, timadorus_erlutils,
  [
-  {description, ""},
-  {vsn, "1"},
+  {description, "A loose collection of utility functions. Most where created for the timadorus project, but should apply to many erl efforts."},
+  {vsn, "1.0.0"},
   {registered, []},
   {applications, [
                   kernel,
