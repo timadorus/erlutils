@@ -38,15 +38,24 @@ split_node([], UseAsHost )    -> { [], UseAsHost };
 split_node([ $@ | T ], Node ) -> { Node, T };
 split_node([ H | T ], Node )  -> split_node(T,  Node ++ [H] ).
 
-%% @doc make a valid erlang node shortname from Name,
-%% using the current (local) hostname
+%% @doc make a valid erlang node name from Name,
+%% using the hostname part of this node. This will either produce a short or 
+%% a long name depending on how the node was set up.
 %% @end
 -spec make_node(Name::atom()) -> atom().
 make_node(Name) ->
+    {_MyName, Hostname} = split_node(node()),
+    make_node(Name, list_to_atom(Hostname)).
+
+%% @doc make a valid erlang node name from Name,
+%% using the current (local) hostname
+%% @end
+-spec make_short_node(Name::atom()) -> atom().
+make_short_node(Name) ->
     {ok, Hostname} = inet:gethostname(),
     make_node(Name, list_to_atom(Hostname)).
 
-%% @doc make a node shortname from the supplied name and host atoms
+%% @doc make a node name from the supplied name and host atoms
 %% @end
 -spec make_node(Name::atom(), Host::atom()) -> atom().
 make_node(Name, Host) ->
