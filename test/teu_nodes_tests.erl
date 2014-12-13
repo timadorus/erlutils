@@ -56,8 +56,9 @@ test_split_node() ->
 test_make_numbered_nodes() ->
 	?assertEqual(['node1@hosta', 'node2@hostb', 'node3@hosta'],
 				 teu_nodes:make_numbered_nodes(node, 1, 3, [hosta, hostb])),
-	{ok, LocalHost} = inet:gethostname(),
-	Node = list_to_atom("node1@" ++ LocalHost), 
+%% 	{ok, LocalHost} = inet:gethostname(),
+%% 	Node = list_to_atom("node1@" ++ LocalHost), 
+	Node = list_to_atom("node1@nohost"), 
 	?debugHere,
 	?assertEqual([Node], teu_nodes:make_numbered_nodes(node, 1, 1)),
 	ok.

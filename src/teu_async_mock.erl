@@ -20,7 +20,9 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(state, {lastMessage, messageStack}).
+-record(state, {lastMessage                 :: term(), 
+                messageStack = []           :: [term()], 
+                opt_verbose = false         :: boolean()}).
 
 %% ====================================================================
 %% External functions
@@ -34,16 +36,16 @@
 %% --------------------------------------------------------------------
 %% FIXME: do a proper error/exception handling if the value of the option does 
 %%        not make sense (e.g. something other than an atom)
--spec start_link(Options::[{register, atom()}]) -> {ok, Pid::pid()} | ignore | {error, Error::term()}.
+-spec start_link(Options::[{register, atom()}|verbose]) -> {ok, Pid::pid()} | ignore | {error, Error::term()}.
 start_link(Options) ->
 	RegisterName = teu_application:opt(register, Options),
     case RegisterName of
-		true ->      gen_server:start_link({local, ?MODULE}, ?MODULE, [], []);
-		false ->     gen_server:start_link(?MODULE, [], []); 
+		true ->      gen_server:start_link({local, ?MODULE}, ?MODULE, [Options], []);
+		false ->     gen_server:start_link(?MODULE, [Options], []); 
         RegisterName ->  
            if 
-            is_atom(RegisterName) -> gen_server:start_link({local, RegisterName}, ?MODULE, [], []);
-            true -> gen_server:start_link(?MODULE, [], [])
+            is_atom(RegisterName) -> gen_server:start_link({local, RegisterName}, ?MODULE, [Options], []);
+            true -> gen_server:start_link(?MODULE, [Options], [])
 		   end
     end.
 
@@ -87,8 +89,10 @@ stop(Pid) -> gen_server:cast(Pid, stop).
 %%          ignore               |
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
-init([]) ->
-    {ok, #state{messageStack=[]}}.
+init([Options]) ->
+	Verbose = teu_application:opt(verbose, Options),
+
+    {ok, #state{opt_verbose = Verbose}}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -109,7 +113,7 @@ handle_call(get_stack, _From, State) ->
     {reply, State#state.messageStack, State};
 
 handle_call(Request, _From, State) ->
-    ?debugFmt("unknown message: ~p", [Request]),
+%%     ?debugFmt("unknown message: ~p", [Request]),
     {reply, {error, {unknown_message, Request}}, State}.
 
 %% --------------------------------------------------------------------
@@ -123,7 +127,12 @@ handle_cast(stop, State) ->
     {stop, normal, State};
 
 handle_cast(Msg, State) ->
-    ?debugFmt("have seen message: ~p",[Msg]),
+	
+	case State#state.opt_verbose of
+		true -> io:format("have seen message: ~p",[Msg]);
+		_    -> ok
+    end,
+
     OldStack = State#state.messageStack,
     {noreply, State#state{lastMessage = Msg, messageStack = [Msg|OldStack]}}.
 

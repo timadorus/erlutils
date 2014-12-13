@@ -42,6 +42,7 @@ initial_test_() ->
                     ?_test(test_send_message()),
                     ?_test(test_stack()),
                     ?_test(test_register()),
+                    ?_test(test_verbose()),
 					?_test(test_errenous_call_msg())
                    ]
       end }.
@@ -91,6 +92,20 @@ test_register() ->
     teu_async_mock:stop(Pid2),
     sleep(100),
     ?assertEqual(undefined, whereis(my_proc_name)),
+
+    ok.
+
+test_verbose() ->
+	
+    {ok, Pid} = teu_async_mock:start_link([verbose]),
+
+    gen_server:call(Pid, this_is_a_message_i_am_very_unlikely_to_ever_use),
+
+	gen_server:cast(Pid, test_message),
+	
+	?assertEqual(test_message, teu_async_mock:last_message(Pid)),
+
+	teu_async_mock:stop(Pid),
 
     ok.
 
