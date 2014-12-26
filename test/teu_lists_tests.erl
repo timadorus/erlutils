@@ -18,9 +18,9 @@
 %% Fixtures
 %%
 
-info_test_() ->
-    { setup, fun() -> ok end,
-      fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
+%% info_test_() ->
+%%     { setup, fun() -> ok end,
+%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
 
 internals_test_() ->
     { "test internal functions",
