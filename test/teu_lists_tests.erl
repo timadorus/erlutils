@@ -27,21 +27,45 @@ internals_test_() ->
       setup,
 
       fun() ->
-              %%     application:start(sasl),
               ok
       end,
 
       fun(_Args) ->
-              %%     application:stop(sasl),
               ok
       end,
       fun(_Args) -> [
                     ?_test(test_keylist_equal()),
                     ?_test(test_kvlist_equal()),
-                    ?_test(test_list_equal())
+                    ?_test(test_list_equal()),
+					?_test(test_match_message())
                    ]
       end }.
 
+test_match_message() ->
+	TestCases = [{atom, atom, true},
+				 {atom, other_atom, false},
+				 {fun is_atom/1, atom, true},
+				 {fun is_list/1, atom, false},
+				 {{}, {}, true},
+				 {{atom}, {atom}, true},
+				 {{other_atom}, {atom}, false},
+				 {{1}, {atom}, false},
+				 {{1}, {1}, true},
+				 {{fun is_atom/1}, {atom}, true},
+				 {{fun is_list/1}, {atom}, false},
+				 {{one, fun is_atom/1, three}, {one, two, three}, true},
+				 {{one, fun is_atom/1, three}, {one, two, four}, false},
+				 {{one, fun is_number/1, three}, {one, 2, three}, true},
+				 {{one, fun is_atom/1, three}, {one, 2, three}, false}
+				 ],
+	
+	lists:foreach(fun({Pattern, Message, Expected}) -> 
+%% 						  ?debugFmt("Pattern: ~p, Message: ~p, Expected:~p~n",[Pattern, Message, Expected]),
+						  ?assertEqual(Expected,
+									   teu_lists:match_message(Pattern, Message))
+				   end, TestCases),
+	
+	ok.
 
 %% verify keylist comparison
 test_keylist_equal() ->
