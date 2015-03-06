@@ -53,7 +53,7 @@ init([Event, Caller]) ->
 handle_event(CurrEvent, State) 
   when CurrEvent == State#state.event
     ->
-    gen_server:cast(State#state.caller, {ok, CurrEvent}),
+    gen_server:cast(State#state.caller, {have_seen_event, CurrEvent}),
     
     remove_handler.
 
