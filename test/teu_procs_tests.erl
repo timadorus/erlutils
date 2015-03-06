@@ -37,7 +37,8 @@ internals_test_() ->
       end,
       fun(_Args) -> [
                     ?_test(test_wait_for_exit()),
-                    ?_test(test_wait_for_specific_exit())
+                    ?_test(test_wait_for_specific_exit()),
+                    ?_test(test_wait_for_event())
                    ]
       end }.
 
@@ -62,3 +63,14 @@ test_wait_for_specific_exit() ->
 	teu_procs:wait_for_exit(MPid,normal),
 	
 	ok.
+
+test_wait_for_event() ->
+    
+    {ok, MgrPid} = gen_event:start_link(),
+    Event = {an_event, [foo, bar]},
+    
+    spawn(fun() -> timer:apply_after(100, gen_event, notify, [MgrPid, Event]) end),
+    
+    teu_procs:wait_for_event(MgrPid, Event),
+    
+    ok.
