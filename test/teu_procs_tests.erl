@@ -38,7 +38,9 @@ internals_test_() ->
       fun(_Args) -> [
                     ?_test(test_wait_for_exit()),
                     ?_test(test_wait_for_specific_exit()),
-                    ?_test(test_wait_for_event())
+                    ?_test(test_wait_for_event_success()),
+                    ?_test(test_wait_for_event_timeout()),
+                    ?_test(test_wait_for_event_timeout_variable())
                    ]
       end }.
 
@@ -64,13 +66,33 @@ test_wait_for_specific_exit() ->
 	
 	ok.
 
-test_wait_for_event() ->
-    
+test_wait_for_event_success() ->
+
     {ok, MgrPid} = gen_event:start_link(),
     Event = {an_event, [foo, bar]},
     
     spawn(fun() -> timer:apply_after(100, gen_event, notify, [MgrPid, Event]) end),
     
-    teu_procs:wait_for_event(MgrPid, Event),
+    ?assertEqual({ok, Event}, teu_procs:wait_for_event(MgrPid, Event)),
+    
+    ok.
+
+
+test_wait_for_event_timeout() ->
+
+    {ok, MgrPid} = gen_event:start_link(),
+    Event = {an_event, [foo, bar]},
+        
+    ?assertEqual({error, timeout}, teu_procs:wait_for_event(MgrPid, Event)),
+    
+    ok.
+
+test_wait_for_event_timeout_variable() ->
+
+    {ok, MgrPid} = gen_event:start_link(),
+    Event = {an_event, [foo, bar]},
+        
+    ?assertEqual({error, timeout}, 
+                 teu_procs:wait_for_event(MgrPid, Event, 1000)),
     
     ok.

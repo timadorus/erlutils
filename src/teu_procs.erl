@@ -20,7 +20,7 @@
 %% --------------------------------------------------------------------
 %% Exports
 %% --------------------------------------------------------------------
--export([wait_for_exit/1, wait_for_exit/2, wait_for_event/2]).
+-export([wait_for_exit/1, wait_for_exit/2, wait_for_event/2, wait_for_event/3]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -70,18 +70,41 @@ wait_for_exit(Pid) ->
 %% the function will register a handler with the event manager given, and
 %% return if the event is seen.
 %%
+%% if the event is not seen within 3000 milliseconds, {error, timeout} will
+%% be returned
+%%
 -spec wait_for_event(EventMgrPid :: pid(), Event :: term()) -> ok.
 %% --------------------------------------------------------------------
 wait_for_event(EventMgrPid, Event) ->
+    wait_for_event(EventMgrPid, Event, 3000).
+
+
+%% wait_for_event/3
+%% --------------------------------------------------------------------
+%% @doc wait for th given event to occour, blocking the function until the
+%% event is recieved.
+%%
+%% the function will register a handler with the event manager given, and
+%% return if the event is seen.
+%%
+%% if the event is not seen within a number of milliseconds set by Timeout, 
+%% {error, timeout} will be returned.
+%%
+-spec wait_for_event(EventMgrPid :: pid(), Event :: term(), Timeout :: pos_integer()) -> ok.
+%% --------------------------------------------------------------------
+wait_for_event(EventMgrPid, Event, Timeout) ->
     {ok, ServerPid} = gen_server:start_link(?MODULE, [], []),
     ok = gen_event:add_handler(EventMgrPid, teu_procs_helper_handler, [Event, ServerPid]),
-    gen_server:call(ServerPid, wait_for_event).
+    {ok, TRef} = timer:send_after(Timeout, ServerPid, timeout),
+    gen_server:call(ServerPid, {wait_for_event, TRef}).
 
 
 %% ====================================================================
 %% Behavioural functions 
 %% ====================================================================
--record(state, {caller = none :: {pid(), Tag :: term()} | none}).
+-record(state, {caller = none :: {pid(), Tag :: term()} | none,
+                timer_ref :: timer:tref()
+               }).
 
 %% init/1
 %% ====================================================================
@@ -116,8 +139,8 @@ init([]) ->
     Timeout :: non_neg_integer() | infinity,
     Reason :: term().
 %% ====================================================================
-handle_call(wait_for_event, From, State) ->
-    NewState = State#state{caller = From},
+handle_call({wait_for_event, TRef}, From, State) ->
+    NewState = State#state{caller = From, timer_ref = TRef},
     {noreply, NewState}.
 
 
@@ -138,6 +161,7 @@ handle_cast({have_seen_event, Event}, State) ->
     {stop, normal, NewState}.
 
 
+
 %% handle_info/2
 %% ====================================================================
 %% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:handle_info-2">gen_server:handle_info/2</a>
@@ -149,8 +173,11 @@ handle_cast({have_seen_event, Event}, State) ->
     NewState :: term(),
     Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
-handle_info(_Info, State) ->
-    {noreply, State}.
+handle_info(timeout, State) ->
+    timer:cancel(State#state.timer_ref),
+    gen_server:reply(State#state.caller, {error, timeout}),
+    NewState = State#state{caller = none},
+    {stop, normal, NewState}.
 
 
 %% terminate/2
