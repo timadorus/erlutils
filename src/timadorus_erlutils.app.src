@@ -7,6 +7,5 @@
                   kernel,
                   stdlib
                  ]},
-  % {mod, []},  % this app does not start any server/supervisor-tree
-  {env, [{test_dummy_par1, 2}]}
+  {env, []}
  ]}.
