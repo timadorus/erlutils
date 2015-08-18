@@ -30,7 +30,7 @@
 %% function returns median of all tests.
 %% @end
 -spec test_avg(Title::string(), Module :: atom(), Function :: atom(), 
-               Args :: list(), N :: pos_integer()) -> float(). 
+               Args :: list(), N :: pos_integer()) -> integer(). 
 %% ----------------------------------------------------------------------------
 test_avg(T, M, F, A, N) when N > 0 ->
     L = test_loop(M,F,A,N,[]),
@@ -52,7 +52,7 @@ test_avg(T, M, F, A, N) when N > 0 ->
 %% @end
 -spec test_avg_func(Title::string(), Module :: atom(), Function :: atom(), 
                     Args :: list(), GenInput :: term(), Generator :: function(), 
-                    N :: pos_integer()) -> float(). 
+                    N :: pos_integer()) -> integer(). 
 %% ----------------------------------------------------------------------------
 test_avg_func(T,M,F,A,L,G,N) when N > 0 ->
     ResList = test_loop_func(M, F, A, L, G, N, []),
@@ -67,7 +67,7 @@ test_avg_func(T,M,F,A,L,G,N) when N > 0 ->
 %% function returns median of all tests.
 %% @end
 -spec test_avg_list(Title::string(), Module :: atom(), Function :: atom(), 
-                    Args :: list(), ArgList :: list()) -> float(). 
+                    Args :: list(), ArgList :: list()) -> integer(). 
 %% ----------------------------------------------------------------------------
 test_avg_list(Title,Module,Function,Args,ArgList) when length(ArgList) > 0  ->
   ResList = test_loop_list(Module, Function, Args, ArgList, []),
@@ -78,7 +78,7 @@ test_avg_list(Title,Module,Function,Args,ArgList) when length(ArgList) > 0  ->
 %% ----------------------------------------------------------------------
 %% @doc return the 95th percentile of the list 
 %% @end
--spec percentile95(L::[float()|integer()]) -> float.
+-spec percentile95(L::[float()|integer()]) -> float().
 %% ----------------------------------------------------------------------
 percentile95(L)-> percentile(L,0.95).
 
@@ -87,7 +87,7 @@ percentile95(L)-> percentile(L,0.95).
 %% ----------------------------------------------------------------------
 %% @doc return the 98th percentile of the list 
 %% @end
--spec percentile98(L::[float()|integer()]) -> float.
+-spec percentile98(L::[float()|integer()]) -> float().
 %% ----------------------------------------------------------------------
 percentile98(L)-> percentile(L,0.98).
 
@@ -100,7 +100,7 @@ percentile98(L)-> percentile(L,0.98).
 %% P: nth percentile as percentage (0.0 < P < 1.0)
 %% 
 %% @end
--spec percentile(L::[number()], P::float()) -> float.
+-spec percentile(L::[number()], P::float()) -> float().
 %% ----------------------------------------------------------------------
 percentile(L, P)->
     K=(length(L) - 1) * P,
@@ -145,7 +145,7 @@ ceiling(X) ->
 %% ====================================================================
 %% Performance Tests
 %% ====================================================================
-
+-spec test_calc(Title::string(), [number()]) -> integer().
 test_calc(Title, L) -> 
     Length = length(L),
     Min = lists:min(L),

@@ -101,7 +101,7 @@ get_run_functions_command(FunCalls) ->
 	get_run_text_command(create_function_call_sequence_string(FunCalls)).
 
 get_run_text_command(Text) ->
-	ErlPrefix = "erl -pa .eunit -run -eval \"",
+	ErlPrefix = "erl -pa _build/test/lib/timadorus_erlutils/ebin -run -eval \"",
 	ErlSuffix = "\" -s init stop -noshell",
 	Command = ErlPrefix ++ escape_quotes(Text) ++ ErlSuffix,
 %% 	?debugFmt("~p~n", [Command]),
@@ -205,6 +205,8 @@ test_register() ->
     ?assertEqual(undefined, whereis(my_proc_name)),
 
     ok.
+
+-dialyzer({no_match, test_verbose/0}).
 
 test_verbose() ->
 	

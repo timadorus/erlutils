@@ -25,7 +25,7 @@
 %% in both lists, return false otherwise.
 %%
 %% @end
--spec kvlist_equal(KVList1::[{atom, term()}], KVList2::[{atom, term()}]) -> true | false.
+-spec kvlist_equal(KVList1::[{atom(), term()}], KVList2::[{atom(), term()}]) -> boolean().
 %% --------------------------------------------------------------------
 kvlist_equal(KVList1, KVList2) ->
 	keylist_equal(1,KVList1, KVList2).
@@ -35,8 +35,9 @@ kvlist_equal(KVList1, KVList2) ->
 %% @doc return true if two lists have the same lenght and each element is contained
 %% in both lists, return false otherwise.
 %%
+%% the key for sorting is to be found in position N of the tuple, starting at 1.
 %% @end
--spec keylist_equal(N::pos_integer(), Keylist1::[tuple()], Keylist2::[{tuple()}]) -> true | false.
+-spec keylist_equal(N::pos_integer(), Keylist1::[tuple()], Keylist2::[tuple()]) -> boolean().
 %% --------------------------------------------------------------------
 keylist_equal(N,Keylist1, Keylist2) ->
 	Sorted1 = lists:keysort(N, Keylist1),
@@ -52,7 +53,7 @@ keylist_equal(N,Keylist1, Keylist2) ->
 %% in both lists, return false otherwise.
 %%
 %% @end
--spec list_equal(L1 :: list(), L2 :: list()) -> true|false.
+-spec list_equal(L1 :: list(), L2 :: list()) -> boolean().
 %% --------------------------------------------------------------------
 list_equal(List1, List2) ->
 	Sorted1 =lists:sort(List1),
@@ -71,7 +72,7 @@ list_equal(List1, List2) ->
 %% or functions of the pattern: fun(V) -> true| false. Or it may be single atom
 %% or a single function of above format.
 %% @end
--spec contains_message(MsgPattern, MsgList) ->  true  | false when
+-spec contains_message(MsgPattern, MsgList) ->  boolean() when
                       MsgPattern :: tuple() | term() | function(), 
                       MsgList :: [tuple() | term()].
 %% ------------------------------------------------------------------

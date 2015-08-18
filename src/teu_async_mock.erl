@@ -40,7 +40,8 @@
 %% --------------------------------------------------------------------
 %% FIXME: do a proper error/exception handling if the value of the option does 
 %%        not make sense (e.g. something other than an atom)
--spec start_link(Options::[{register, atom()}|verbose]) -> {ok, Pid::pid()} | ignore | {error, Error::term()}.
+-spec start_link(Options::[{register, atom()} | register | verbose]) -> 
+		  {ok, Pid::pid()} | ignore | {error, Error::any()}.
 start_link(Options) ->
 	RegisterName = teu_application:opt(register, Options),
     case RegisterName of
@@ -62,7 +63,8 @@ start_link(Options) ->
 %% FIXME: do a proper error/exception handling if the value of the option does 
 %%        not make sense (e.g. something other than an atom)
 %%
--spec start(Options::[{register, atom()}|verbose]) -> {ok, Pid::pid()} | ignore | {error, Error::term()}.
+-spec start(Options::[{register, atom()} | register | verbose]) -> 
+		  {ok, Pid::pid()} | ignore | {error, Error::any()}.
 %% --------------------------------------------------------------------
 start(Options) ->
 	RegisterName = teu_application:opt(register, Options),

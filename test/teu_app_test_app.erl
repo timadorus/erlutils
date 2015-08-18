@@ -31,7 +31,7 @@
 	| {ok, Pid :: pid(), State :: term()}
 	| {error, Reason :: term()}.
 %% ====================================================================
-start(Type, StartArgs) ->
+start(_Type, StartArgs) ->
     case teu_app_test_sup:start_link(StartArgs) of
 		{ok, Pid} ->
 			{ok, Pid};
@@ -44,7 +44,7 @@ start(Type, StartArgs) ->
 %% @doc <a href="http://www.erlang.org/doc/apps/kernel/application.html#Module:stop-1">application:stop/1</a>
 -spec stop(State :: term()) ->  Any :: term().
 %% ====================================================================
-stop(State) ->
+stop(_State) ->
     ok.
 
 %% ====================================================================

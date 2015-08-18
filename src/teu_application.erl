@@ -108,7 +108,7 @@ opt(_, [],Default) ->
 %%
 %% <p>this function uses the atom false as the default value. Otherwise
 %% is is the same as opt/3
--spec opt(Option::atom(), OptionList::[{atom(), term()}]) -> term().
+-spec opt(Option::atom(), OptionList::[{atom(), term()} | atom()]) -> term().
 opt(Op, Options) -> opt(Op, Options, false). 
 
 

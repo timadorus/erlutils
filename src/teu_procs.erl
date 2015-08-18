@@ -32,7 +32,8 @@
 %% --------------------------------------------------------------------
 %% @doc wait for the process with the given pid to terminate.
 %% @end
--spec wait_for_exit(Pid :: pid()) -> ok.
+-spec wait_for_exit(Pid :: pid()) -> 
+		  ok.
 %% --------------------------------------------------------------------
 wait_for_exit(Pid) ->
     MRef = erlang:monitor(process, Pid),
@@ -48,18 +49,22 @@ wait_for_exit(Pid) ->
 %% function will ensure that the process terminated with the 
 %% return value given for Reason. If the process has terminated before this 
 %% function was called, or has never existed, this function will return 
-%% immediately.
+%% immediately with 'ok' indicating success.
 %% @end
--spec wait_for_exit(Pid :: pid(), Reason :: term()) -> ok.
+-spec wait_for_exit(Pid :: pid(), Reason :: term()) -> 
+		  ok 
+        | {error, {expected, Exp :: term()},
+		          {value,    Val :: term()}}.
 %% --------------------------------------------------------------------
  wait_for_exit(Pid, Reason) ->
     MRef = erlang:monitor(process, Pid),
     receive 
         {'DOWN', MRef, _, _, noproc} ->
             ok;
-        {'DOWN', MRef, _, _, Info} ->
-            ?assertMatch(Reason,Info),
-            ok 
+        {'DOWN', MRef, _, _, Reason} ->
+            ok;
+        {'DOWN', MRef, _, _, Val} ->
+            {error, {expected, Reason},{value, Val}} 
     end.
 
 %% wait_for_event/2
@@ -73,7 +78,8 @@ wait_for_exit(Pid) ->
 %% if the event is not seen within 3000 milliseconds, {error, timeout} will
 %% be returned
 %%
--spec wait_for_event(EventMgrPid :: pid(), Event :: term()) -> ok.
+-spec wait_for_event(EventMgrPid :: pid(), Event :: term()) -> 
+         {ok, Event :: term()} | {error, timeout}.
 %% --------------------------------------------------------------------
 wait_for_event(EventMgrPid, Event) ->
     wait_for_event(EventMgrPid, Event, 3000).
@@ -90,7 +96,8 @@ wait_for_event(EventMgrPid, Event) ->
 %% if the event is not seen within a number of milliseconds set by Timeout, 
 %% {error, timeout} will be returned.
 %%
--spec wait_for_event(EventMgrPid :: pid(), Event :: term(), Timeout :: pos_integer()) -> ok.
+-spec wait_for_event(EventMgrPid :: pid(), Event :: term(), Timeout :: pos_integer()) -> 
+        {ok, Event :: term()} | {error, timeout}.
 %% --------------------------------------------------------------------
 wait_for_event(EventMgrPid, Event, Timeout) ->
     {ok, ServerPid} = gen_server:start_link(?MODULE, [], []),

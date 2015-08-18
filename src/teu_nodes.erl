@@ -82,7 +82,7 @@ make_node(Name, Number, Host) when is_list(Host)->
 		  Nodes::[atom()].
 make_numbered_nodes(Label, StartNum, EndNum) ->
     {_MyName, Hostname} = split_node(node()),
-	make_numbered_nodes(Label, StartNum, EndNum, [Hostname]).
+	make_numbered_nodes(Label, StartNum, EndNum, [list_to_atom(Hostname)]).
 
 %% @doc make a number of node names from a numbers range, a label atom.
 %% the host name of the local host as retrieved by inet:gethostname will be used.
@@ -92,7 +92,7 @@ make_numbered_nodes(Label, StartNum, EndNum) ->
 		  Nodes::[atom()].
 make_numbered_short_nodes(Label, StartNum, EndNum) ->
 	{ok, Hostname} = inet:gethostname(),
-	make_numbered_nodes(Label, StartNum, EndNum, [Hostname]).
+	make_numbered_nodes(Label, StartNum, EndNum, [list_to_atom(Hostname)]).
 
 %% @doc make a number of node names from a numbers range, a label atom and a list of hosts
 %% @end
