@@ -16,8 +16,8 @@
 %% External exports
 %% --------------------------------------------------------------------
 -export([start_link/1, start/1, stop/1, 
-		 last_message/1, message_stack/1, wait_for_msg/1, wait_for_msg/2, 
-		 is_verbose/1]).
+         last_message/1, message_stack/1, wait_for_msg/1, wait_for_msg/2, 
+         check_for_msg/2, is_verbose/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -133,15 +133,44 @@ wait_for_msg(Pid) -> wait_for_msg(Pid, fun(_) -> true end).
      Message :: term().
 %% --------------------------------------------------------------------
 wait_for_msg(Pid, FilterPred) ->
-	gen_server:cast(Pid, {teu_async_mock_internal_wait_for_msg, FilterPred, self()}),
-	
+    gen_server:cast(Pid, {teu_async_mock_internal_wait_for_msg, FilterPred, self()}),
+    
     receive
-	    {received_msg, Msg} -> 
-			gen_server:cast(Pid, {teu_async_mock_internal_received_msg, FilterPred, self()}),
-			{ok, Msg}
+        {received_msg, Msg} -> 
+            gen_server:cast(Pid, {teu_async_mock_internal_received_msg, FilterPred, self()}),
+            {ok, Msg}
     after
         %% wait 3 seconds
-		3000 -> {error, timeout} 
+        3000 -> {error, timeout} 
+    end.
+
+
+%% check_for_msg/2
+%% --------------------------------------------------------------------
+%% @doc block until a message matching the argument is recieved by the
+%% async_mock process. If the messages has been recieved previously (as 
+%% indicated by an entry in the call log), the function will return 
+%% immediately.
+%%
+%% The message is matched using a predicate that will return true for 
+%% acceptable messages, false otherwise.
+%% @end
+%% --------------------------------------------------------------------
+-spec check_for_msg(Pid, FilterPred) -> {ok, Message} | {error, timeout} when
+     Pid :: pid(),
+     FilterPred :: fun(),
+     Message :: term().
+%% --------------------------------------------------------------------
+check_for_msg(Pid, FilterPred) ->
+    gen_server:cast(Pid, {teu_async_mock_internal_check_for_msg, FilterPred, self()}),
+    
+    receive
+        {received_msg, Msg} -> 
+            gen_server:cast(Pid, {teu_async_mock_internal_received_msg, FilterPred, self()}),
+            {ok, Msg}
+    after
+        %% wait 3 seconds
+        3000 -> {error, timeout} 
     end.
 
 %% stop/1
@@ -208,7 +237,18 @@ handle_cast(stop, State) ->
     {stop, normal, State};
 
 handle_cast({teu_async_mock_internal_wait_for_msg, FilterPred, ObserverPid}, State) -> 
-	{noreply, State#state{observer=ObserverPid, observerPred=FilterPred}};
+    {noreply, State#state{observer=ObserverPid, observerPred=FilterPred}};
+
+handle_cast({teu_async_mock_internal_check_for_msg, FilterPred, ObserverPid}, State) ->
+    %% check in old messages
+    lists:foreach(fun(Msg) ->
+                          case FilterPred(Msg) of
+                              true -> ObserverPid ! {received_msg, Msg};
+                              _ -> ok
+                          end         
+                  end, 
+                  State#state.messageStack),
+    {noreply, State#state{observer=ObserverPid, observerPred=FilterPred}};
 
 handle_cast({teu_async_mock_internal_received_msg, _FilterPred, _ObserverPid}, State) -> 
 	{noreply, State#state{observer=none}};

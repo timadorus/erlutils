@@ -64,19 +64,34 @@ verbose_output_test_() ->
 
 wait_for_message_test_() ->
     { "the calling process shall block until it the mock recieves the right message", 
-	  setup, 
-	  fun() -> 
-			  {ok, MPid} = teu_async_mock:start([verbose]),
-			  MPid
-	  end,
+      setup, 
+      fun() -> 
+              {ok, MPid} = teu_async_mock:start([verbose]),
+              MPid
+      end,
       fun(MPid) ->
-			  teu_async_mock:stop(MPid)
-	  end,
-	  fun(MPid) -> [
-					?_test(test_wait_for_any_msg(MPid)),
-					?_test(test_wait_for_msg_match(MPid))
+              teu_async_mock:stop(MPid)
+      end,
+      fun(MPid) -> [
+                    ?_test(test_wait_for_any_msg(MPid)),
+                    ?_test(test_wait_for_msg_match(MPid))
                     ]
-	  end }.
+      end }.
+
+check_for_message_test_() ->
+    { "the calling process shall block until it the mock recieves the right message", 
+      setup, 
+      fun() -> 
+              {ok, MPid} = teu_async_mock:start([verbose]),
+              MPid
+      end,
+      fun(MPid) ->
+              teu_async_mock:stop(MPid)
+      end,
+      fun(MPid) -> [
+                    ?_test(test_check_for_msg_match(MPid))
+                    ]
+      end }.
 
 
 %%
@@ -127,26 +142,49 @@ escape_quotes(String) ->
 
 test_wait_for_msg_match(MPid) ->
 
-	%% create another process to actually make the call, so we can start the
+    %% create another process to actually make the call, so we can start the
     %% actual function to wait for the message.
-	_TmpPid = spawn(fun() -> 
-							timer:sleep(500), 
-							gen_server:cast(MPid, {an_invalid_message, notme}), 
-							gen_server:cast(MPid, {a_valid_message, 3}) 
-					end),
-	
-%% 	?debugFmt("mock PId: ~p~n",[MPid]),
-	
-	?assertMatch({ok, {a_valid_message, _V}}, 
-				 teu_async_mock:wait_for_msg(MPid, 
+    _TmpPid = spawn(fun() -> 
+                            timer:sleep(500), 
+                            gen_server:cast(MPid, {an_invalid_message, notme}), 
+                            gen_server:cast(MPid, {a_valid_message, 3}) 
+                    end),
+    
+%%  ?debugFmt("mock PId: ~p~n",[MPid]),
+    
+    ?assertMatch({ok, {a_valid_message, _V}}, 
+                 teu_async_mock:wait_for_msg(MPid, 
                                              fun(Arg) -> 
                                                 case Arg of 
                                                    {a_valid_message, _} -> true;
                                                    _ -> false
                                                 end 
                                              end)),
-	
-	ok.
+    
+    ok.
+
+test_check_for_msg_match(MPid) ->
+
+    %% create another process to actually make the call, so we can start the
+    %% actual function to wait for the message.
+    _TmpPid = spawn(fun() -> 
+                            gen_server:cast(MPid, {an_invalid_message, notme}), 
+                            gen_server:cast(MPid, {a_valid_message, 3}) 
+                    end),
+    
+    timer:sleep(100),
+%%  ?debugFmt("mock PId: ~p~n",[MPid]),
+    
+    ?assertMatch({ok, {a_valid_message, _V}}, 
+                 teu_async_mock:check_for_msg(MPid, 
+                                             fun(Arg) -> 
+                                                case Arg of 
+                                                   {a_valid_message, _} -> true;
+                                                   _ -> false
+                                                end 
+                                             end)),
+    
+    ok.
 
 test_wait_for_any_msg(MPid) ->
 
