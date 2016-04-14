@@ -15,18 +15,24 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get_last_event/1, get_last_event/2]).
+-export([get_last_event/1, get_last_event/2, get_event_stack/1, get_event_stack/2]).
 
 get_last_event(EventMgrRef) -> 
-	gen_event:call(EventMgrRef, ?MODULE, get_last_event).
+	get_last_event(EventMgrRef, ?MODULE).
 
 get_last_event(EventMgrRef, HandlerId) -> 
 	gen_event:call(EventMgrRef, HandlerId, get_last_event).
 
+get_event_stack(EventMgrRef) ->
+    get_event_stack(EventMgrRef, ?MODULE).
+
+get_event_stack(EventMgrRef, HandlerId) ->
+    gen_event:call(EventMgrRef, HandlerId, get_event_stack).
+
 %% ====================================================================
 %% Behavioural functions 
 %% ====================================================================
--record(state, { last_event :: term()}).
+-record(state, { last_event :: term(), event_stack :: [term()]}).
 
 %% init/1
 %% ====================================================================
@@ -40,7 +46,7 @@ get_last_event(EventMgrRef, HandlerId) ->
 	State :: term().
 %% ====================================================================
 init([]) ->
-    {ok, #state{}}.
+    {ok, #state{event_stack=[]}}.
 
 
 %% handle_event/2
@@ -56,7 +62,7 @@ init([]) ->
 	Module2 :: atom().
 %% ====================================================================
 handle_event(Event, State) ->
-    {ok, State#state{last_event=Event}}.
+    {ok, State#state{last_event=Event, event_stack=[Event|State#state.event_stack]}}.
 
 
 %% handle_call/2
@@ -74,6 +80,10 @@ handle_event(Event, State) ->
 %% ====================================================================
 handle_call(get_last_event, State) ->
     Reply = {ok, State#state.last_event},
+    {ok, Reply, State};
+
+handle_call(get_event_stack, State) ->
+    Reply = {ok, State#state.event_stack},
     {ok, Reply, State}.
 
 
