@@ -35,7 +35,12 @@
 %% start_link/1
 %% --------------------------------------------------------------------
 %% @doc start the mock.
-%% if Register is set to 'register' the process will register locally with the name 'quperl_control'.
+%% Options takes a list of options, which may be one of:
+%% <dl>
+%%  <dt>register</dt><dd>register server to name <tt>teu_async_mock</tt></dd>
+%%  <dt>{register, atom()}</dt><dd>register server to name given by atom</dd>
+%%  <dt>verbose</dt><dd>control verbosity of debug messages.</dd>
+%% </dl>
 %% @end
 %% --------------------------------------------------------------------
 %% FIXME: do a proper error/exception handling if the value of the option does 
