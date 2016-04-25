@@ -42,7 +42,9 @@ initial_test_() ->
                     ?_test(test_stack()),
                     ?_test(test_register()),
                     ?_test(test_verbose()),
-                    ?_test(test_errenous_call_msg())
+                    ?_test(test_errenous_call_msg()),
+                    ?_test(test_register_reply()),
+                    ?_test(test_check_replies())
                    ]
       end }.
 
@@ -52,8 +54,8 @@ verbose_output_test_() ->
      fun() ->
              ok
      end,
-     fun(_Args) -> 
-             ok 
+     fun(_Args) ->
+             ok
      end,
      fun(_Args) ->
              [
@@ -63,9 +65,9 @@ verbose_output_test_() ->
     }.
 
 wait_for_message_test_() ->
-    { "the calling process shall block until it the mock recieves the right message", 
-      setup, 
-      fun() -> 
+    { "the calling process shall block until it the mock recieves the right message",
+      setup,
+      fun() ->
               {ok, MPid} = teu_async_mock:start([verbose]),
               MPid
       end,
@@ -79,9 +81,9 @@ wait_for_message_test_() ->
       end }.
 
 check_for_message_test_() ->
-    { "the calling process shall block until it the mock recieves the right message", 
-      setup, 
-      fun() -> 
+    { "the calling process shall block until it the mock recieves the right message",
+      setup,
+      fun() ->
               {ok, MPid} = teu_async_mock:start([verbose]),
               MPid
       end,
@@ -101,8 +103,8 @@ check_for_message_test_() ->
 test_verbose_output() ->
     %% the test requires very specific set up. Disabled for now.
 %%     ?assertCmdOutput("have seen message: message\n",
-%%                       get_run_functions_command([#fun_call{module = teu_async_mock_tests, 
-%%                                                            function = verbose_mock_runner, 
+%%                       get_run_functions_command([#fun_call{module = teu_async_mock_tests,
+%%                                                            function = verbose_mock_runner,
 %%                                                            args = [message]}])),
     ok.
 
@@ -110,7 +112,7 @@ verbose_mock_runner(Msg) ->
     {ok, Pid} = teu_async_mock:start([verbose]),
     gen_server:cast(Pid, Msg),
     teu_async_mock:stop(Pid),
-    
+
     ok.
 
 get_run_functions_command(FunCalls) ->
@@ -145,88 +147,88 @@ test_wait_for_msg_match(MPid) ->
 
     %% create another process to actually make the call, so we can start the
     %% actual function to wait for the message.
-    _TmpPid = spawn(fun() -> 
-                            timer:sleep(500), 
-                            gen_server:cast(MPid, {an_invalid_message, notme}), 
-                            gen_server:cast(MPid, {a_valid_message, 3}) 
+    _TmpPid = spawn(fun() ->
+                            timer:sleep(500),
+                            gen_server:cast(MPid, {an_invalid_message, notme}),
+                            gen_server:cast(MPid, {a_valid_message, 3})
                     end),
-    
+
 %%  ?debugFmt("mock PId: ~p~n",[MPid]),
-    
-    ?assertMatch({ok, {a_valid_message, _V}}, 
-                 teu_async_mock:wait_for_msg(MPid, 
-                                             fun(Arg) -> 
-                                                case Arg of 
+
+    ?assertMatch({ok, {a_valid_message, _V}},
+                 teu_async_mock:wait_for_msg(MPid,
+                                             fun(Arg) ->
+                                                case Arg of
                                                    {a_valid_message, _} -> true;
                                                    _ -> false
-                                                end 
+                                                end
                                              end)),
-    
+
     ok.
 
 test_check_for_msg_match(MPid) ->
 
     %% create another process to actually make the call, so we can start the
     %% actual function to wait for the message.
-    _TmpPid = spawn(fun() -> 
-                            gen_server:cast(MPid, {an_invalid_message, notme}), 
-                            gen_server:cast(MPid, {a_valid_message, 3}) 
+    _TmpPid = spawn(fun() ->
+                            gen_server:cast(MPid, {an_invalid_message, notme}),
+                            gen_server:cast(MPid, {a_valid_message, 3})
                     end),
-    
+
     timer:sleep(100),
 %%  ?debugFmt("mock PId: ~p~n",[MPid]),
-    
-    ?assertMatch({ok, {a_valid_message, _V}}, 
-                 teu_async_mock:check_for_msg(MPid, 
-                                             fun(Arg) -> 
-                                                case Arg of 
+
+    ?assertMatch({ok, {a_valid_message, _V}},
+                 teu_async_mock:check_for_msg(MPid,
+                                             fun(Arg) ->
+                                                case Arg of
                                                    {a_valid_message, _} -> true;
                                                    _ -> false
-                                                end 
+                                                end
                                              end)),
-    
+
     ok.
 
 test_wait_for_any_msg(MPid) ->
 
     %% create another process to actually make the call, so we can start the
     %% actual function to wait for the message.
-    _TmpPid = spawn(fun() -> 
-                            timer:sleep(500), 
-                            gen_server:cast(MPid, a_valid_message) 
+    _TmpPid = spawn(fun() ->
+                            timer:sleep(500),
+                            gen_server:cast(MPid, a_valid_message)
                     end),
-    
+
 %%     ?debugFmt("mock PId: ~p~n",[MPid]),
-    
+
     ?assertMatch({ok, _Msg}, teu_async_mock:wait_for_msg(MPid)),
-    
+
     ok.
 
 test_send_message() ->
     Res = teu_async_mock:start_link([]),
     ?assertMatch({ok, _Pid}, Res),
     {ok, Pid} = Res,
-    
+
     ?assertMatch(undefined, whereis(true)),
     ?assertMatch(undefined, whereis(teu_async_mock)),
-    
+
     gen_server:cast(Pid, test_message),
-    
+
     ?assertEqual(test_message, teu_async_mock:last_message(Pid)),
-    
+
     ok.
 
 test_stack() ->
     {ok, Pid} = teu_async_mock:start_link([]),
-    
+
     gen_server:cast(Pid, {message, 1}),
     gen_server:cast(Pid, another_message),
-    
+
     ?assertEqual([another_message, {message, 1}], teu_async_mock:message_stack(Pid)),
     ok.
 
 test_register() ->
-    
+
     {ok, Pid1} = teu_async_mock:start_link([register]),
 
     ?assertEqual(Pid1, whereis(teu_async_mock)),
@@ -248,15 +250,15 @@ test_register() ->
 -dialyzer({no_match, test_verbose/0}).
 
 test_verbose() ->
-    
+
     {ok, Pid} = teu_async_mock:start_link([verbose]),
 
     gen_server:call(Pid, this_is_a_message_i_am_very_unlikely_to_ever_use),
 
     gen_server:cast(Pid, test_message),
-    
+
     ?assertEqual(test_message, teu_async_mock:last_message(Pid)),
-    
+
     ?assert(teu_async_mock:is_verbose(Pid)),
 
     teu_async_mock:stop(Pid),
@@ -265,8 +267,42 @@ test_verbose() ->
 
 test_errenous_call_msg() ->
     {ok, Pid} = teu_async_mock:start_link([]),
-    
+
      gen_server:call(Pid, this_is_a_message_i_am_very_unlikely_to_ever_use),
-    
+
     teu_async_mock:stop(Pid),
+    ok.
+
+
+is_test_msg(message) -> true;
+is_test_msg(_) -> false.
+
+test_register_reply() ->
+    {ok, Pid} = teu_async_mock:start([]),
+
+    ?assertEqual({error, {unknown_message, message}}, gen_server:call(Pid, message)),
+
+    Ref = teu_async_mock:register_reply(Pid, fun is_test_msg/1, seen_it),
+
+    ?assertEqual(seen_it, gen_server:call(Pid, message)),
+
+    ok = teu_async_mock:unregister_reply(Pid, Ref),
+
+    ?assertEqual({error, {unknown_message, message}}, gen_server:call(Pid, message)),
+
+    ok.
+
+is_right_msg(a_message) -> true;
+is_right_msg(_) -> false.
+
+test_check_replies() ->
+%%     -spec check_replies(Replies :: dict:dict(), Request :: term()) ->
+%%           Reply :: term() | {error, {unknown_message, term()}}.
+
+    Ref = make_ref(),
+    Replies = dict:store(Ref, {fun is_right_msg/1, all_well}, dict:new()),
+
+    Reply = teu_async_mock:check_replies(Replies, a_message),
+    ?assertEqual(all_well, Reply),
+
     ok.
