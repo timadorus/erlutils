@@ -27,7 +27,7 @@
 			| {error, Reason :: term()},
 	State :: term().
 %% ====================================================================
-init([ListenerPid]) ->
+init(ListenerPid) ->
     {ok, #state{listener_pid = ListenerPid}}.
 
 
@@ -37,7 +37,7 @@ init([ListenerPid]) ->
 -spec handle_event(Event :: term(), State :: term()) -> Result when
 	Result :: {ok, NewState}
 			| {ok, NewState, hibernate}
-			| {swap_handlers, Args1, NewState, Handler2, Args2}
+			| {swap_handler, Args1, NewState, Handler2, Args2}
 			| remove_handler,
 	NewState :: term(), Args1 :: term(), Args2 :: term(),
 	Handler2 :: Module2 | {Module2, Id :: term()},
