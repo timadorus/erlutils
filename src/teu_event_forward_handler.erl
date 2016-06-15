@@ -44,7 +44,7 @@ init(ListenerPid) ->
 	Module2 :: atom().
 %% ====================================================================
 handle_event(Event, State) ->
-    {event, Event}!State#state.listener_pid,
+    State#state.listener_pid ! {event, Event},
     {ok, State}.
 
 
