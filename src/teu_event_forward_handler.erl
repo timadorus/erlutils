@@ -27,7 +27,7 @@
 			| {error, Reason :: term()},
 	State :: term().
 %% ====================================================================
-init(ListenerPid) ->
+init([ListenerPid]) ->
     {ok, #state{listener_pid = ListenerPid}}.
 
 
