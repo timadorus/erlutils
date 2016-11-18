@@ -12,7 +12,8 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([kvlist_equal/2, keylist_equal/3, list_equal/2, contains_message/2]).
+-export([kvlist_equal/2, keylist_equal/3, list_equal/2, contains_message/2,
+         mapwhile/2]).
 
 -ifdef(TEST).
 -export([match_message/2]).

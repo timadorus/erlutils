@@ -87,11 +87,11 @@ function pull_source {
 
     for file in rebar.config elvis.config dialyzer.ignore-warning
       do
-        if [ -f $file ]
+        if [ -f "${BASEDIR}/${file}" ]
           then
-            cp -a "${BASEDIR}/${f}" "${WORKDIR}/${PROJECT}_local/"
+            cp -a "${BASEDIR}/${file}" "${WORKDIR}/${PROJECT}_local/"
           else
-            echo "Warning: file ${file} not found in project. File is listed as standard project file."
+            echo "Warning: file ${BASEDIR}/${file} not found in project. File is listed as standard project file."
           fi
       done
 }

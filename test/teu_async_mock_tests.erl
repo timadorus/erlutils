@@ -115,6 +115,24 @@ verbose_mock_runner(Msg) ->
 
     ok.
 
+%% these function are all part of the console output test setup. This requires
+%% manual interventions, and thus is not included in the standard automated tests.
+-dialyzer({no_unused, [ get_run_functions_command/1
+                      , get_run_text_command/1
+                      , create_function_call_sequence_string/1
+                      , create_function_call_string/1
+                      , get_arguments_string/1
+                      , escape_quotes/1
+                      ]}).
+
+-compile([{nowarn_unused_function, [ { get_run_functions_command, 1}
+                                   , { get_run_text_command, 1}
+                                   , { create_function_call_sequence_string, 1}
+                                   , { create_function_call_string, 1}
+                                   , { get_arguments_string, 1}
+                                   , { escape_quotes, 1}
+                                   ]}]).
+
 get_run_functions_command(FunCalls) ->
     get_run_text_command(create_function_call_sequence_string(FunCalls)).
 
