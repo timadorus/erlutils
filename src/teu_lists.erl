@@ -82,6 +82,28 @@ contains_message(MsgPattern, MsgList)  ->
 			  end, MsgList).
 
 
+%% mapwhile/2
+%% ------------------------------------------------------------------
+%% @doc apply map to elements of list until the map function returns false.
+%% @todo test me
+%% @param function to process elements
+%% @param input list to be processed
+%% @returns list of map results.
+%% @end
+-spec mapwhile(Pred, List1) -> List2 when
+      Pred :: fun((Elem :: A) -> {true, B} | false),
+      List1 :: [A],
+      List2 :: [B],
+      A :: term(),
+      B :: term().
+%% ------------------------------------------------------------------
+mapwhile(Pred, [Hd|Tail]) ->
+    case Pred(Hd) of
+    {true, Val} -> [Val|mapwhile(Pred, Tail)];
+    false -> []
+    end;
+mapwhile(Pred, []) when is_function(Pred, 1) -> [].
+
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
