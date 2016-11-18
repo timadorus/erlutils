@@ -18,10 +18,10 @@
 %% @doc initialize a controler.
 %% @end
 -spec init(Args :: [term()]) -> 
-          {ok, GenState :: term()} 
+          {ok, CtrlState :: term(), GenStartArgs :: list()} 
         | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
-init(_Args) -> #ctrl_state{}.
+init(_Args) -> {ok, #ctrl_state{}, []}.
 
 %% init_generator/2
 %% --------------------------------------------------------------------
@@ -29,7 +29,8 @@ init(_Args) -> #ctrl_state{}.
 %% @param ControlPid the Pid of the controler for this generator
 %% @end
 -spec init_generator(Args :: [term()], ControlPid :: pid()) -> 
-          {ok, State :: term()} | {error, Reason :: term()}.
+          {ok, GenState :: term()} 
+        | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 init_generator(_Args, _ControlPid) -> {ok, #gen_state{}}.
 

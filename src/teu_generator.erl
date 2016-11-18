@@ -23,7 +23,7 @@
 %% @doc initialize a controler.
 %% @end
 -callback init(Args :: [term()]) -> 
-          {ok, GenState :: term()} 
+          {ok, CtrlState :: term(), GenStartArgs :: list()} 
         | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
@@ -34,6 +34,22 @@
 %% @end
 -callback init_generator(Args :: [term()], ControlPid :: pid()) -> 
           {ok, State :: term()} | {error, Reason :: term()}.
+%% --------------------------------------------------------------------
+
+%% get_work/3
+%% @doc request more work from the control process. 
+%% This function will asynchronously call the generate/3 function
+%% of the correct generator.
+%% @end
+-callback get_work(GenRef :: reference(), State :: term()) -> 
+          ok | {error, Reason ::term()}.
+%% --------------------------------------------------------------------
+
+%% deliver_work/3
+%% @doc hand in resultant work by the generator to the controler.
+%% @end
+-callback deliver_work(GenRef :: reference(), Result :: term(), 
+                       State :: term()) -> ok | {error, Reason ::term()}.
 %% --------------------------------------------------------------------
 
 
@@ -47,12 +63,13 @@
 %% @param State is the internal state of the generator.
 %% @returns a list of new elements. 
 %% @end
--callback generate(Chunks :: term, CtrlPid :: pid(), State :: term()) ->
+-callback generate(Resource :: term, CtrlPid :: pid(), State :: term()) ->
         {ok, State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
 %% API exports
--export([start_link/3, stop/1]).
+-export([ start_link/3, stop/1
+        , run/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -61,11 +78,14 @@
 %% function only exported for tests
 -ifdef(TEST).
 -export([
+         make_gen/1
         ]).
 -endif.
 
 -record(state, { module :: atom()
                , ctrl_state :: term()
+               , gen_pids :: sets:set()
+               , gen_start_args :: list()   %% starting argument for new generators
                }).
 
 %% ====================================================================
@@ -90,6 +110,15 @@ start_link(Module, Arguments, Options) ->
 -spec stop(Pid::pid()) -> ok.
 stop(Pid) -> gen_server:cast(Pid, stop).
 
+
+%% run/2
+%% --------------------------------------------------------------------
+%% @doc execute the generator.
+%% @end
+-spec run(CtrlPid :: pid(), ExtraArgs :: term()) -> ok.
+run(CtrlPid, ExtraArgs) ->
+    gen_server:cast(CtrlPid, {run, ExtraArgs}).
+
 %% ====================================================================
 %% Behavior functions
 %% ====================================================================
@@ -104,8 +133,8 @@ stop(Pid) -> gen_server:cast(Pid, stop).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([Module, CtrlArguments]) ->
-    CtrlState = Module:init(CtrlArguments),
-    {ok, #state{module = Module, ctrl_state = CtrlState}}.
+    {ok, CtrlState, GenStartArgs} = Module:init(CtrlArguments),
+    {ok, #state{module = Module, ctrl_state = CtrlState, gen_start_args = GenStartArgs}}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -130,8 +159,9 @@ handle_call(_Request, _From, State) ->
 handle_cast(stop, State) ->
     {stop, normal, State};
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+handle_cast({run, _ExtraArgs}, State) ->
+    NewState = make_gen(State),
+    {noreply, NewState}.
 
 
 %% --------------------------------------------------------------------
@@ -164,4 +194,14 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
-
+%% make_gen/1
+%% --------------------------------------------------------------------
+%% @doc make new generator.
+%% @end
+-spec make_gen(State :: #state{}) -> #state{}.
+%% --------------------------------------------------------------------
+make_gen(State) ->
+    {ok, GenPid} = teu_generator_wrk:start_link(State#state.module, State#state.gen_start_args, 
+                                                self(), []),
+    NewPidSet = sets:add_element(GenPid, State#state.gen_pids),
+    State#state{gen_pids = NewPidSet}.
