@@ -27,43 +27,38 @@
         | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
-%% init_generator/2
+%% make_work/1
 %% --------------------------------------------------------------------
-%% @doc initialize a generator.
-%% @param ControlPid the Pid of the controler for this generator
-%% @end
--callback init_generator(Args :: [term()], ControlPid :: pid()) -> 
-          {ok, State :: term()} | {error, Reason :: term()}.
-%% --------------------------------------------------------------------
-
-%% get_work/3
-%% @doc request more work from the control process. 
-%% This function will asynchronously call the generate/3 function
-%% of the correct generator.
-%% @end
--callback get_work(GenRef :: reference(), State :: term()) -> 
-          ok | {error, Reason ::term()}.
+%% @doc create a new work package to be sent to one of the generators.
+-callback make_work(State :: term()) -> 
+           {ok, WorkRef :: reference(), WorkSpec :: term(), State :: term()} 
+         | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
 %% deliver_work/3
 %% @doc hand in resultant work by the generator to the controler.
 %% @end
 -callback deliver_work(GenRef :: reference(), Result :: term(), 
-                       State :: term()) -> ok | {error, Reason ::term()}.
+                       State :: term()) -> 
+             {ok, State :: term()} | {error, Reason ::term()}.
 %% --------------------------------------------------------------------
 
+%%
+%%  Worker functions
+%%
 
 %% generate/3
 %% --------------------------------------------------------------------
 %% @doc generate a number of new Elements.
-%% @param Resource should gives an indication of how many new elements are to be created. 
-%%        This may be the actual number of elements or a total cost of all new elements.
+%% @param WorkRef an identifier for the work package. As the process of the 
+%%                generator may change to to failures, this is a separate 
+%%                reference.
+%% @param WorkSpec Information for the generator to do its work.
 %% @param Pid of the control process. This is provided, so it does not have to be stored
 %%        in the state of each generator.
-%% @param State is the internal state of the generator.
 %% @returns a list of new elements. 
 %% @end
--callback generate(Resource :: term, CtrlPid :: pid(), State :: term()) ->
+-callback generate(WorkRef :: reference(), WorkSpec :: term, CtrlPid :: pid()) ->
         {ok, State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
@@ -95,12 +90,80 @@
 %% start_link/3
 %% --------------------------------------------------------------------
 %% @doc start a generator/controler set up
+%%  Options: 
+%%   <table>
+%%     <tr><th>Options</th><th>Type</th><th>Description</th><th>default</th></tr>
+%%     <tr>
+%%       <td>overrun_warning</td>
+%%       <td>infinity | integer() >= 1</td>
+%%       <td></td>
+%%       <td>infinity</td>
+%%     </tr>
+%%     <tr>
+%%       <td>overrun_handler</td>
+%%       <td>{Module :: atom(), Fun :: atom()}}</td>
+%%       <td></td>
+%%       <td>undefined</td>
+%%     </tr>
+%%     <tr>
+%%       <td>workers</td>
+%%       <td>integer() >= 1</td>
+%%       <td>Number of workers to start</td>
+%%       <td>100</td>
+%%     </tr>
+%%     <tr>
+%%       <td>worker_opt</td>
+%%       <td>gen:options()</td>
+%%       <td></td>
+%%       <td>[]</td>
+%%     </tr>
+%%     <tr>
+%%       <td>control_opt</td>
+%%       <td>gen:options()</td>
+%%       <td></td>
+%%       <td>[]</td>
+%%     </tr>
+%%     <tr>
+%%       <td>worker</td>
+%%       <td>{Module :: atom(), InitArg :: term()}}</td>
+%%       <td></td>
+%%       <td>undefined</td>
+%%     </tr>
+%%     <tr>
+%%       <td>strategy</td>
+%%       <td>supervisor:strategy()</td>
+%%       <td></td>
+%%       <td>one_for_all</td>
+%%     </tr>
+%%     <tr>
+%%       <td>pool_sup_intensity</td>
+%%       <td>integer() >= 0</td>
+%%       <td></td>
+%%       <td>5</td>
+%%     </tr>
+%%     <tr>
+%%       <td>pool_sup_period</td>
+%%       <td>integer() >= 0</td>
+%%       <td></td>
+%%       <td>60</td>
+%%     </tr>
+%%   </table>
+%% @params Options can contain
+%%     Options for the worker gen_server processs are in worker_opt, those 
+%%     any option to gen_server (for the control 
+%% server). Also: {gen_count, N} for a number of generators. The default
+%% is 5.
 %% @end
 -spec start_link(Module :: atom(), Arguments :: list(), Options :: list()) -> 
           {ok, ControlerPid :: pid()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 start_link(Module, Arguments, Options) ->
-    gen_server:start_link(?MODULE, [Module, Arguments], Options).
+    TrueOpts = teu_application:set_opts([ {worker_type, gen_server}
+                                        , {worker,{teu_generator_wrk, [Module]}}
+                                        ], 
+                            Options),
+    CtrlOptions = teu_application:opt(control_opt, TrueOpts, []),
+    gen_server:start_link(?MODULE, [Module, Arguments, TrueOpts], CtrlOptions).
 
 %% stop/1
 %% --------------------------------------------------------------------
@@ -132,9 +195,10 @@ run(CtrlPid, ExtraArgs) ->
 %%          ignore               |
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
-init([Module, CtrlArguments]) ->
+init([Module, CtrlArguments, Options]) ->
     {ok, CtrlState, GenStartArgs} = Module:init(CtrlArguments),
-    {ok, #state{module = Module, ctrl_state = CtrlState, gen_start_args = GenStartArgs}}.
+    {ok, #state{module = Module, ctrl_state = CtrlState, 
+                options = Options, gen_start_args = GenStartArgs}}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -160,6 +224,8 @@ handle_cast(stop, State) ->
     {stop, normal, State};
 
 handle_cast({run, _ExtraArgs}, State) ->
+    GenCount = teu_application:opt(gen_count, State#state.options, 5),
+    NewState = forN(GenCount, )
     NewState = make_gen(State),
     {noreply, NewState}.
 
@@ -201,7 +267,11 @@ code_change(_OldVsn, State, _Extra) ->
 -spec make_gen(State :: #state{}) -> #state{}.
 %% --------------------------------------------------------------------
 make_gen(State) ->
-    {ok, GenPid} = teu_generator_wrk:start_link(State#state.module, State#state.gen_start_args, 
-                                                self(), []),
+    Module = State#state.module,
+    {ok, GenPid} = teu_generator_wrk:start_link(Module, []),
     NewPidSet = sets:add_element(GenPid, State#state.gen_pids),
-    State#state{gen_pids = NewPidSet}.
+    {ok, WorkRef, WorkSpec, CtrlState} = Module:make_work(State#state.ctrl_state),
+
+    teu_generator_wrk:do_work(GenPid, WorkRef, WorkSpec),
+
+    State#state{gen_pids = NewPidSet, ctrl_state = CtrlState}.

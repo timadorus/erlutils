@@ -21,7 +21,7 @@
 %% Fixtures
 %%
 
-api_test_() ->
+start_stop_test_() ->
     { "test API",
       setup,
 
@@ -34,8 +34,30 @@ api_test_() ->
               %%     application:stop(sasl),
               ok
       end,
-      fun(_Foo) -> [
-                    ?_test(test_start_link_stop())
+      fun(_Foo) -> [ ?_test(test_start_link_stop())
+                   ]
+      end }.
+
+api_test_() ->
+    { "test API",
+      setup,
+
+      fun() ->
+              %%     application:start(sasl),
+
+              {ok, Pid} = teu_generator:start_link(teu_test_generator, [], []),
+              Pid
+      end,
+      
+      fun(Pid) ->
+              unlink(Pid),
+              teu_generator:stop(Pid),
+              teu_procs:wait_for_exit(Pid, normal),
+              
+              %%     application:stop(sasl),
+              ok
+      end,
+      fun(Args) -> [ ?_test(test_get_work(Args))
                    ]
       end }.
 
@@ -81,16 +103,30 @@ test_start_link_stop() ->
 
 ok.
 
+test_get_work(_CtrlPid) ->
+%%     teu_generator:get_work(CtrlPid, GenRef), 
+    ok.
 
 test_make_gen() ->
     Module = teu_test_generator,
     GenStartArgs = [foo, bar],
-    State = #state{module = Module, gen_start_args = GenStartArgs},
+    CtrlState = [alpha, omega],
+    State = #state{module = Module, 
+                   gen_start_args = GenStartArgs,
+                   ctrl_state = CtrlState},
+    WorkRef = make_ref(),
+    WorkSpec = the_work_you_do,
     NewState = State#state{gen_pids = sets:add_element(self(), State#state.gen_pids)},
 
     M = em:new(),
     em:strict(M, teu_generator_wrk, start_link, 
-              [Module, GenStartArgs, self(), []], 
+              [Module, []], 
+              {return, {ok, self()}}),
+    em:strict(M, teu_test_generator, make_work, 
+              [CtrlState], 
+              {return, {ok, WorkRef, WorkSpec, CtrlState}}),
+    em:strict(M, teu_generator_wrk, do_work, 
+              [self(), WorkRef, WorkSpec], 
               {return, {ok, self()}}),
     em:replay(M),
 

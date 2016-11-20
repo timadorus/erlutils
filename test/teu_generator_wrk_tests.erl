@@ -46,13 +46,7 @@ api_test_() ->
 %%
 
 test_start_link_stop() ->
-    M = em:new(),
-    em:strict(M, teu_generator, get_work, [fun is_pid/1, fun is_reference/1]),
-    em:replay(M),
-    
-    {ok, Pid} = teu_generator_wrk:start_link(teu_test_generator, [], self(), []),
-    
-    em:verify(M),
+    {ok, Pid} = teu_generator_wrk:start_link(teu_test_generator, []),
     
     ?assertMatch(P when is_pid(P), Pid),
 

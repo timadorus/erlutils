@@ -15,7 +15,7 @@
 %% API functions
 %% ====================================================================
 -export([get_env/2, get_env/3, remote_start/2, remote_start/3, remote_load/2, 
-		 remote_set_env/4, remote_set_env/5, opt/2, opt/3]).
+         remote_set_env/4, remote_set_env/5, opt/2, opt/3]).
 
 %% get_env/2
 %% ====================================================================
@@ -24,10 +24,10 @@
 %%  (see application:get_env/1 and application:get_env/2 for more details).
 -spec get_env(Par::atom(), Default::any()) -> {ok, Value::any()}.
 get_env(Par, Default) -> 
-	case application:get_env(Par) of
-		{ok, Value} -> {ok, Value};
+    case application:get_env(Par) of
+        {ok, Value} -> {ok, Value};
         _ ->           {ok, Default}
-	end.
+    end.
 
 %% get_env/3
 %% ====================================================================
@@ -36,10 +36,10 @@ get_env(Par, Default) ->
 %%  (see application:get_env/1 and application:get_env/2 for more details).
 -spec get_env(App::atom(), Par::atom(), Default::any()) -> {ok, Value::any()}.
 get_env(App, Par, Default) -> 
-	case application:get_env(App, Par) of
-		{ok, Value} -> {ok, Value};
+    case application:get_env(App, Par) of
+        {ok, Value} -> {ok, Value};
         _ ->           {ok, Default}
-	end.
+    end.
 
 
 %% remote_start/2
@@ -71,17 +71,17 @@ remote_load(Node, Application) -> rpc:block_call(Node, application, load, [Appli
 %% @doc set env values for a remote  application on an (already running) remote node
 %%
 -spec remote_set_env(Node::atom(), Application::atom(), Key::atom(), Val::term()) -> 
-		  ok | {error, Reason::term()}.
+          ok | {error, Reason::term()}.
 remote_set_env(Node, Application, Key, Val) ->
    rpc:block_call(Node, application, set_env, [Application, Key, Val]).
 
 %% remote_set_env/5
 %% ====================================================================
 %% @doc set env values for a remote  application on an (already running) remote node
-%%
+%% @end
 -spec remote_set_env(Node::atom(), Application::atom(), Key::atom(), Val::term(), 
-					 Timeout::pos_integer()) -> 
-		  ok | {error, Reason::term()}.
+                     Timeout::pos_integer()) -> 
+          ok | {error, Reason::term()}.
 remote_set_env(Node, Application, Key, Val, Timeout) ->
    rpc:block_call(Node, application, set_env, [Application, Key, Val, Timeout]).
 
@@ -92,6 +92,11 @@ remote_set_env(Node, Application, Key, Val, Timeout) ->
 %% <p>The options must be given as list of name-value pairs. If only the name
 %% is given, it may serve as flag for a boolean value.</p>
 %%
+%% @param Name name of the option to select.
+%% @param Options list of options.
+%% @param Default default value of the option.
+%% @returns the value of the option.
+%% @end
 -spec opt(Name::atom(), Options::[{atom(), term()}|atom()], Default::term()) -> term().
 opt(Op, [{Op, Value}|_],_Default) ->
     Value;
@@ -111,6 +116,17 @@ opt(_, [],Default) ->
 -spec opt(Option::atom(), OptionList::[{atom(), term()} | atom()]) -> term().
 opt(Op, Options) -> opt(Op, Options, false). 
 
+
+%% set_opts/2
+%% ----------------------------------------------------------------------
+%% @doc set list of options in option list, overwriting existing values
+%% @end
+-spec set_opts(NewList :: [{atom(), term()}], Opts :: [{atom(), term()}]) -> 
+          NewOpts :: [{atom(), term()}].
+%% ----------------------------------------------------------------------
+set_opts(NewList, Opts) ->
+    AllOpts = Opts ++ NewList,
+    
 
 %% ====================================================================
 %% Internal functions

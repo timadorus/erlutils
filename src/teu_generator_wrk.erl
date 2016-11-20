@@ -10,18 +10,17 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/4, stop/1, do_work/2]).
+-export([start_link/2, stop/1, do_work/3]).
 
-%% start_link/4
+%% start_link/2
 %% --------------------------------------------------------------------
 %% @doc start a generator
 %% @end
--spec start_link( Module :: atom(), Arguments :: list()
-                , CtrlPid :: pid(), Options :: list()) -> 
+-spec start_link( Module :: atom(), Options :: list()) -> 
           {ok, ControlerPid :: pid()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
-start_link(Module, Arguments, CtrlPid, Options) ->
-    gen_server:start_link(?MODULE, [Module, Arguments, CtrlPid], Options).
+start_link(Module, Options) ->
+    gen_server:start_link(?MODULE, [Module], Options).
 
 %% stop/1
 %% --------------------------------------------------------------------
@@ -35,17 +34,16 @@ stop(Pid) -> gen_server:cast(Pid, stop).
 %% @doc will send more work to the generator. The control Pid is assumed to
 %% be the process of the calling process.
 %% --------------------------------------------------------------------
--spec do_work(GenPid :: pid(), Resource :: term()) -> ok.
+-spec do_work(GenPid :: pid(), WorkRef :: reference(), WorkSpec :: term()) -> ok.
 %% --------------------------------------------------------------------
-do_work(GenPid, Resource) ->
-    gen_server:cast(GenPid, {do_work, Resource, self()}).
+do_work(GenPid, WorkRef, WorkSpec) ->
+    gen_server:cast(GenPid, {do_work, WorkRef, WorkSpec, self()}).
   
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
 -record(state, { module :: atom()
                , reference :: reference()
-               , gen_state :: term()
                }).
 
 %% init/1
@@ -60,11 +58,8 @@ do_work(GenPid, Resource) ->
     State :: term(),
     Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
-init([Module, Arguments, CtrlPid]) ->
-    {ok, GenState} = Module:init_generator(Arguments, CtrlPid),
-    Reference = erlang:make_ref(),
-    teu_generator:get_work(CtrlPid, Reference),
-    {ok, #state{module = Module, reference = Reference, gen_state = GenState}}.
+init([Module]) ->
+    {ok, #state{module = Module}}.
 
 
 %% handle_call/3
@@ -102,10 +97,9 @@ handle_call(_Request, _From, State) ->
 handle_cast(stop, State) ->
     {stop, normal, State};
 
-handle_cast({do_work, Resource, CtrlPid}, State) ->
+handle_cast({do_work, WorkRef, WorkSpec, CtrlPid}, State) ->
     Module = State#state.module,
-    GenState = State#state.gen_state,
-    GenState = Module:generate(Resource, CtrlPid, GenState),
+    Module:generate(WorkRef, WorkSpec, CtrlPid),
     {noreply, State}.
 
 

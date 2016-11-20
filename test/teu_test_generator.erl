@@ -8,10 +8,10 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([init/1, init_generator/2, generate/3]).
+-export([init/1, make_work/1, deliver_work/3, generate/3]).
 
--record(ctrl_state, {}).
--record(gen_state, {ctrl_pid :: pid()}).
+-record(ctrl_state, {elements = [1,2,3,4,5],
+                     handed_out = []}).
 
 %% init/1
 %% --------------------------------------------------------------------
@@ -23,31 +23,39 @@
 %% --------------------------------------------------------------------
 init(_Args) -> {ok, #ctrl_state{}, []}.
 
-%% init_generator/2
+%% make_work/1
 %% --------------------------------------------------------------------
-%% @doc initialize a generator.
-%% @param ControlPid the Pid of the controler for this generator
+%% @doc create a new work package to be sent to one of the generators.
+-spec make_work(State :: term()) -> 
+        {ok, WorkRef :: term(), WorkSpec :: term(), State :: term()}
+      | {error, Reason :: term()}.
+%% --------------------------------------------------------------------
+make_work(State) -> {ok, make_ref(), {hoo, hah}, State}.
+
+%% deliver_work/3
+%% @doc hand in resultant work by the generator to the controler.
 %% @end
--spec init_generator(Args :: [term()], ControlPid :: pid()) -> 
-          {ok, GenState :: term()} 
-        | {error, Reason :: term()}.
+-spec deliver_work(GenPid :: pid(), Result :: term(), State :: term()) -> 
+          {ok, State :: term()}
+        | {terminate_gen, State :: term()}
+        | {error, Reason ::term()}.
 %% --------------------------------------------------------------------
-init_generator(_Args, _ControlPid) -> {ok, #gen_state{}}.
+deliver_work(_GenPid, _Result, State) -> {ok, State}.
+
 
 %% generate/3
 %% --------------------------------------------------------------------
 %% @doc generate a number of new Elements.
-%% @param Resource should gives an indication of how many new elements are to be created. 
-%%        This may be the actual number of elements or a total cost of all new elements.
-%% @param State is the internal state of the generator.
-%% @param Pid of the control process. This is provided, so it does not have to be stored
-%%        in the state of each generator.
-%% @returns a list of new elements. 
+%% @param WorkRef an identifier for the work package. As the process of the 
+%%                generator may change to to failures, this is a separate 
+%%                reference.
+%% @param WorkSpec the work to do.
+%% @param CtrlPid of the control process. Send the result of the work here.
 %% @end
--spec generate(Chunks :: term, CtrlPid :: pid(), State :: term()) ->
-        {ok, State :: term()} | {error, Reason :: term()}.
+-spec generate(WorkRef :: reference, WorkSpec :: term, CtrlPid :: pid()) ->
+        ok | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
-generate(_Chunk, _CtrlPid, State) -> {ok, State}.
+generate(_WorkRef, _WorkSpec, _CtrlPid) -> ok.
 
 %% ====================================================================
 %% Internal functions
