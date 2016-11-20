@@ -40,7 +40,8 @@ initial_test_() ->
       end,
       fun(_Foo) -> [
                     ?_test(test_read_config()),
-                    ?_test(test_opt())
+                    ?_test(test_opt()),
+                    ?_test(test_set_opts())
                    ]
       end }.
 
@@ -53,13 +54,13 @@ initial_test_() ->
 test_read_config() ->
     %% Fixme: cannot test, since this process does not belong to any app
 %%     application:set_env(App, test_dummy_par1, 2),
-%% 	?assertEqual({ok, 2}, teu_application:get_env(test_dummy_par1, 3)),
-%% 	?assertEqual({ok, 3}, teu_application:get_env(test_dummy_par2, 3)),
+%%     ?assertEqual({ok, 2}, teu_application:get_env(test_dummy_par1, 3)),
+%%     ?assertEqual({ok, 3}, teu_application:get_env(test_dummy_par2, 3)),
 
     application:set_env(teu_app_test, par1, 2),
-	?assertEqual({ok, 2}, teu_application:get_env(teu_app_test, par1, 3)),
+    ?assertEqual({ok, 2}, teu_application:get_env(teu_app_test, par1, 3)),
     
-	?assertEqual({ok, 3}, teu_application:get_env(teu_app_test, par2, 3)),
+    ?assertEqual({ok, 3}, teu_application:get_env(teu_app_test, par2, 3)),
     
     ok.
 
@@ -83,3 +84,19 @@ test_opt() ->
 %%   ?debugHere,
   ok.
 
+
+test_set_opts() ->
+    TestCases = [ {[], [], []}
+                , {[{a, 1}], [], [{a, 1}]}
+                , {[{a, 1}, {b, 2}], [], [{a, 1}, {b, 2}]}
+                , {[], [{a, 1}, {b, 2}], [{a, 1}, {b, 2}]}
+                , {[{a, 1}], [{b, 2}], [{a, 1}, {b, 2}]}
+                , {[{a, 2}], [{a, 1}], [{a, 2}]}
+                , {[{a, 1}], [{a, 2}, {b, 2}], [{a, 1}, {b, 2}]}
+                ],
+    
+    lists:map(fun({NewList, Opts, Expected}) -> 
+                      ?assertEqual(Expected, teu_application:set_opts(NewList, Opts))
+              end, TestCases),
+
+    ok.

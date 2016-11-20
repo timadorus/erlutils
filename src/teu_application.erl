@@ -15,7 +15,7 @@
 %% API functions
 %% ====================================================================
 -export([get_env/2, get_env/3, remote_start/2, remote_start/3, remote_load/2, 
-         remote_set_env/4, remote_set_env/5, opt/2, opt/3]).
+         remote_set_env/4, remote_set_env/5, opt/2, opt/3, set_opts/2]).
 
 %% get_env/2
 %% ====================================================================
@@ -126,6 +126,9 @@ opt(Op, Options) -> opt(Op, Options, false).
 %% ----------------------------------------------------------------------
 set_opts(NewList, Opts) ->
     AllOpts = Opts ++ NewList,
+    OutMap = lists:foldl(fun({Key, Value}, InMap) -> 
+                        maps:put(Key, Value, InMap) end, #{}, AllOpts),
+    maps:to_list(OutMap).
     
 
 %% ====================================================================
