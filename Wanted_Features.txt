@@ -1,0 +1,26 @@
+This is little scratchpad of stuff I should implemented when I can find the time:
+
+
+work_supervisor:
+----------------
+
+this is a supervisor that will register the arguments of the worker processes
+that it starts. The results of a worker process will be triaged into one of the following:
+
+- An error. This could be anything caught by the runtime system or be signaled by the
+  process by calling error/1, exit/1 or an uncaught throw/1
+
+  The supervisor will restart the worker, incrementing a retry counter.
+- An exception. This must be determined by the worker itself. The message terminating the
+  worker will be forwarded to the calling process. This message could be sent by the worker
+  itself, but then it would need to keep track of the caller and notify this supervisor of
+  a "success" separately
+
+  The worker will not be restarted.
+
+- a valid return code ("normal").
+  The worker will not be restarted.
+
+The code expands on the concept of the simple_one_for_one supervisor, but keeps track of
+successful and unsuccessful execution, reducing the need for restarting code in other modules.
+
