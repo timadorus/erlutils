@@ -13,7 +13,7 @@
 %% API functions
 %% ====================================================================
 -export([kvlist_equal/2, keylist_equal/3, list_equal/2, contains_message/2,
-         mapwhile/2]).
+         mapwhile/2, zipfill/3]).
 
 -ifdef(TEST).
 -export([match_message/2]).
@@ -30,7 +30,7 @@
 %% --------------------------------------------------------------------
 kvlist_equal(KVList1, KVList2) ->
     keylist_equal(1,KVList1, KVList2).
-  
+
 %% keylist_equal/3
 %% --------------------------------------------------------------------
 %% @doc return true if two lists have the same lenght and each element is contained
@@ -60,12 +60,12 @@ list_equal(List1, List2) ->
     Sorted1 =lists:sort(List1),
     Sorted2 =lists:sort(List2),
     Result = lists:umerge(Sorted1, Sorted2),
-    (length(List1) == length(Result)) and 
+    (length(List1) == length(Result)) and
         (length(List2) == length(Result)).
 
 %% contains_message/2
 %% ------------------------------------------------------------------
-%% @doc return true if a matching message is element of the message list, 
+%% @doc return true if a matching message is element of the message list,
 %% false otherwise.
 %%
 %% MsgList is list of arbitrary tuples or single atoms.
@@ -74,7 +74,7 @@ list_equal(List1, List2) ->
 %% or a single function of above format.
 %% @end
 -spec contains_message(MsgPattern, MsgList) ->  boolean() when
-                      MsgPattern :: tuple() | term() | function(), 
+                      MsgPattern :: tuple() | term() | function(),
                       MsgList :: [tuple() | term()].
 %% ------------------------------------------------------------------
 contains_message(MsgPattern, MsgList)  ->
@@ -106,25 +106,44 @@ mapwhile(Pred, [Hd|Tail]) ->
 mapwhile(Pred, []) when is_function(Pred, 1) -> [].
 
 
+%% zipfill/3
+%% ------------------------------------------------------------------
+%% @doc zip two lists.
+%% works like @see lists:zip/2, but will fill the missing value with
+%% given padding, should the lists be of unequal length
+%% @param List1
+%% @param List2
+%% @param Pad
+-spec zipfill(L1 :: list(), L2 :: list(), Pad :: any()) -> list().
+%% ------------------------------------------------------------------
+zipfill([X | Xs], [Y | Ys], P) -> [{X, Y} | zipfill(Xs, Ys, P)];
+
+zipfill([X | Xs], [], P) -> [{X, P} | zipfill(Xs, [], P)];
+
+zipfill([], [Y | Ys], P) -> [{P, Y} | zipfill([], Ys, P)];
+
+zipfill([], [], _) -> [].
+
+
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
 
-match_message(Pattern, Message) 
+match_message(Pattern, Message)
   when is_tuple(Pattern) and is_tuple(Message) ->
     match_message(tuple_to_list(Pattern),
                   tuple_to_list(Message));
 
-match_message(Pattern, Message) 
+match_message(Pattern, Message)
   when is_atom(Pattern) ->
     Pattern =:= Message;
 
-match_message(Pattern, Message) 
+match_message(Pattern, Message)
   when is_function(Pattern,1) ->
     Pattern(Message);
 
 match_message([FirstPat|PatternRest], [FirstMsg|MessageRest])
-  when is_function(FirstPat, 1) -> 
+  when is_function(FirstPat, 1) ->
     case FirstPat(FirstMsg) of
         false -> false;
         true -> match_message(PatternRest,MessageRest)
@@ -141,3 +160,5 @@ match_message([], []) ->
 
 %% everything i don't understand should be false
 match_message(_, _) -> false.
+
+
