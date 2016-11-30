@@ -31,12 +31,13 @@ new(_Args) -> #node{}.
 -spec equal(Tree1 :: term(), Tree2 :: term()) -> true | false.
 %% --------------------------------------------------------------------
 equal(Tree1, Tree2) when Tree1#node.val == Tree2#node.val ->
-    CL1 = array:to_list(Tree1#node.children),
-    CL2 = array:to_list(Tree2#node.children),
-  case length(CL1) == length(CL2) of
-      false -> false;
-      true -> lists:all(fun({C1, C2}) -> equal(C1, C2) end , lists:zip(CL1, CL2))
-  end;
+    Zip = teu_lists:zipfill(array:to_list(Tree1#node.children),
+                            array:to_list(Tree2#node.children),
+                            array:default(Tree1#node.children)),
+    lists:all(fun({C1, C2}) -> equal(C1, C2) end , Zip);
+
+%% handle the padded or deleted child cases
+equal(undefined,undefined) -> true;
 
 equal(_,_) -> false.
 
@@ -44,7 +45,18 @@ equal(_,_) -> false.
 %% --------------------------------------------------------------------
 -spec add_child(Parent :: term(), Child :: term(), Index :: non_neg_integer()) -> Tree :: term().
 %% --------------------------------------------------------------------
-add_child(Parent, Child, Index) ->
+add_child(_Parent, Child, []) -> Child;
+
+add_child(undefined, Child, Index) ->
+    Parent = new([]),
+    add_child(Parent, Child, Index);
+
+add_child(Parent, Child, [Idx | Rest]) ->
+    Children = Parent#node.children,
+    NewChild = add_child(get_child(Parent, Idx), Child, Rest),
+    Parent#node{children = array:set(Idx - 1, NewChild, Children)};
+
+add_child(Parent, Child, Index) when is_integer(Index) ->
     Children = Parent#node.children,
     Parent#node{children = array:set(Index - 1, Child, Children)}.
 
@@ -59,15 +71,23 @@ delete_child(Parent, Index) ->
 
 
 %% get_child/2
-%% @od this may allow a more optimized implementation, otherwise this
-%% would be:
-%% <pre>
-%%  get_child(P,I) -> lists:nth(I,tree_impl:get_list(P).
-%% </pre>
+%% @doc return child node.
+%% implements @see teu_tree:get_child/2.
 %% --------------------------------------------------------------------
--spec get_child(Parent :: term(), Index :: non_neg_integer()) -> Child :: term() | undefined.
+-spec get_child(Parent :: term(),
+                Index :: non_neg_integer() | [non_neg_integer()]) ->
+          Child :: term() | undefined.
 %% --------------------------------------------------------------------
-get_child(Parent, Index) -> array:get(Index - 1 , Parent#node.children).
+
+get_child(Parent, []) -> Parent;
+
+get_child(Parent, [Idx | Rest]) -> get_child(get_child(Parent, Idx), Rest);
+
+get_child(undefined, _Index) -> throw(bad_args);
+
+get_child(Parent, Index) when is_integer(Index)-> array:get(Index - 1 , Parent#node.children).
+
+
 
 %% child_list/2
 %% --------------------------------------------------------------------

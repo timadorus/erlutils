@@ -19,8 +19,15 @@
 %% --------------------------------------------------------------------
 
 %% add_child/3
+%% @doc add child in nth position.
+%% @param Index index of the child to select or list of indicies to descibre
+%%              path through tree.
+%% @returns the tree created by the change. If the list of indices is empty,
+%%          the child will be returned.
 %% --------------------------------------------------------------------
--callback add_child(Parent :: term(), Child :: term(), IndexPath :: non_neg_integer()) -> Tree :: term().
+-callback add_child(Parent :: term(), Child :: term(),
+                    Index :: non_neg_integer() | [non_neg_integer()]) ->
+             Tree :: term().
 %% --------------------------------------------------------------------
 
 %% delete_child/3
@@ -29,13 +36,18 @@
 %% --------------------------------------------------------------------
 
 %% get_child/2
-%% @doc this may allow a more optimized implementation, otherwise this
-%% would be:
-%% <pre>
-%%  get_child(P,I) -> lists:nth(I,tree_impl:get_list(P).
-%% </pre>
+%% @doc retrieve the nth child of a node.
+%% @param Index index of the child to select or list of indicies to describe
+%%              path through tree.
+%% @throws bad_args if the index is a list and any but the last of the
+%%                  indicies indicate a non existing node
+%% @returns the child indicated by the index. If the child does not exist,
+%%          undefined is returned. If the list of indices is empty, the Parent
+%%          will be returned.
 %% --------------------------------------------------------------------
--callback get_child(Parent :: term(), Index :: non_neg_integer()) -> Child :: term() | undefined.
+-callback get_child(Parent :: term(),
+                    Index :: non_neg_integer() | [non_neg_integer()]) ->
+             Child :: term() | undefined.
 
 %% --------------------------------------------------------------------
 
@@ -70,7 +82,8 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/2, equal/2, add_child/3, children/1, get_child/2, delete_child/2]).
+-export([new/2, equal/2, add_child/3, children/1, get_child/2,
+         delete_child/2, set_data/2, get_data/1]).
 
 -record(tree, { module :: atom()
               , root   :: term()
@@ -98,12 +111,14 @@ equal(#tree{module = Module, root = Root1}, #tree{module = Module, root = Root2}
 %% --------------------------------------------------------------------
 %% @doc add a subtree into a tree.
 %% any subtree currently set at position n will be overwritten.
-%% @param Index 1 =< index =< n
+%% @param Index 1 =< index =< n or list thereof.
 %% @end
--spec add_child(Tree :: term(), Child :: term(), Index :: non_neg_integer()) -> Tree :: term().
+-spec add_child(Tree :: term(), Child :: term(),
+                Index :: non_neg_integer() | [non_neg_integer()]) ->
+          Tree :: term().
 %% --------------------------------------------------------------------
 add_child(#tree{ module = Module, root = Root},
-    #tree{ module = Module, root = Child}, Index) ->
+    #tree{module = Module, root = Child}, Index) ->
     #tree{module = Module, root = Module:add_child(Root, Child, Index)};
 
 add_child(#tree{ module = Module, root = Root},
@@ -125,15 +140,16 @@ children(#tree{module = Module, root = Root}) ->
 %% get_child/2
 %% --------------------------------------------------------------------
 %% @doc return child of node at specified position.
-%% @param Index number of child to retrieve.
+%% @param Index number of child to retrieve or list of indicies describing path to node to return.
 %% @end
--spec get_child(Tree :: term(), Index :: non_neg_integer()) -> Child :: term() | undefined.
+-spec get_child(Tree :: term(), Index :: non_neg_integer() | [non_neg_integer()]) -> Child :: term() | undefined.
 %% --------------------------------------------------------------------
 get_child(#tree{module = Module, root = Root}, Index) ->
     case Module:get_child(Root, Index) of
         undefined -> undefined;
         Child -> #tree{module = Module, root = Child}
     end.
+
 
 %% delete_child/2
 %% --------------------------------------------------------------------
@@ -143,6 +159,27 @@ get_child(#tree{module = Module, root = Root}, Index) ->
 %% --------------------------------------------------------------------
 delete_child(Tree = #tree{module = Module, root = Root}, Index) ->
     Tree#tree{root = Module:delete_child(Root, Index)}.
+
+
+%% set_data/2
+%% --------------------------------------------------------------------
+%% @doc set user data in the root node.
+%% @return will return the changed tree.
+%% @end
+-spec set_data(Tree :: term(), Data :: any()) -> term().
+%% --------------------------------------------------------------------
+set_data(#tree{module = Module, root = Root}, Data) ->
+    #tree{module = Module, root = Module:set_data(Root, Data)}.
+
+
+%% get_data/1
+%% --------------------------------------------------------------------
+%% @doc get user data from root node.
+%% @end
+-spec get_data(Tree :: term()) -> term().
+%% --------------------------------------------------------------------
+get_data(#tree{module = Module, root = Root}) ->
+    Module:get_data(Root).
 
 %% ====================================================================
 %% Internal functions

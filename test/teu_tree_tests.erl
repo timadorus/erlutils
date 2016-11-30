@@ -39,14 +39,16 @@ api_test_() ->
               ok
       end,
       fun(_Foo) -> [ ?_test(test_new())
-                   , ?_test(test_equal())
-                   , ?_test(test_add_child())
                    , ?_test(test_get_child())
+                   , ?_test(test_add_child())
+                   , ?_test(test_equal())
                    , ?_test(test_delete_child())
+                   , ?_test(test_set_get_data())
                    ]
       end }.
 
 
+-define(TREE_IMPL_MODULE, teu_simple_tree_impl).
 
 %%
 %% Local Functions
@@ -57,37 +59,16 @@ api_test_() ->
 
 test_new() ->
 
-    Tree = teu_tree:new(teu_simple_tree_impl, []),
+    Tree = teu_tree:new(?TREE_IMPL_MODULE, []),
     ?assertMatch(T when is_record(T, tree), Tree),
 
     ok.
 
 
-test_equal() ->
-    Tree1= teu_tree:new(teu_simple_tree_impl, []),
-    Tree2= teu_tree:new(teu_simple_tree_impl, []),
-
-    ?assertEqual(true, teu_tree:equal(Tree1, Tree1)),
-
-    ?assertEqual(true, teu_tree:equal(Tree1, Tree2)),
-
-    ok.
-
-
-test_add_child() ->
-
-    Tree= teu_tree:new(teu_simple_tree_impl, []),
-    Child= teu_tree:new(teu_simple_tree_impl, []),
-    NewTree = teu_tree:add_child(Tree, Child, 1),
-
-    ?assertEqual([Child], teu_tree:children(NewTree)),
-
-    ok.
-
 test_get_child() ->
 
-    Tree= teu_tree:new(teu_simple_tree_impl, []),
-    Child= teu_tree:new(teu_simple_tree_impl, []),
+    Tree = teu_tree:new(?TREE_IMPL_MODULE, []),
+    Child = teu_tree:new(?TREE_IMPL_MODULE, []),
     NewTree = teu_tree:add_child(Tree, Child, 1),
 
     ?assertEqual(Child, teu_tree:get_child(NewTree, 1)),
@@ -98,17 +79,73 @@ test_get_child() ->
 
     ?assertEqual(undefined, teu_tree:get_child(ThirdTree, 4)),
 
+    ?assertEqual(Tree, teu_tree:get_child(Tree, [])),
+
+    ?assertEqual(Tree, teu_tree:get_child(NewTree, [1])),
+
+    ?assertEqual(undefined, teu_tree:get_child(Tree, [1])),
+
+    ?assertEqual(undefined, teu_tree:get_child(NewTree, [1,1])),
+
+    ?assertThrow(bad_args, teu_tree:get_child(Tree, [1,1])),
+
+    ok.
+
+
+test_add_child() ->
+
+    Tree = teu_tree:new(?TREE_IMPL_MODULE, []),
+    Child = teu_tree:new(?TREE_IMPL_MODULE, []),
+
+    NewTree = teu_tree:add_child(Tree, Child, 1),
+    ?assertEqual([Child], teu_tree:children(NewTree)),
+
+    ?assertEqual(Child, teu_tree:add_child(Tree, Child, [])),
+
+    NewTree = teu_tree:add_child(Tree, Child, [1]),
+    ?assertEqual([Child], teu_tree:children(NewTree)),
+
+    DeepTree = teu_tree:add_child(Tree, Child, [1,1]),
+    ?assertEqual(Child, teu_tree:get_child(DeepTree, [1,1])),
+
+    ok.
+
+
+test_equal() ->
+    Tree1 = teu_tree:new(?TREE_IMPL_MODULE, []),
+    Tree2 = teu_tree:new(?TREE_IMPL_MODULE, []),
+
+
+    ?assertEqual(true, teu_tree:equal(Tree1, Tree1)),
+
+    Tree3 = teu_tree:add_child(Tree1, Tree2, 2),
+    ?assertEqual(false, teu_tree:equal(Tree1, Tree3)),
+
+    Tree4 = teu_tree:delete_child(Tree3, 2),
+    ?assertEqual(true, teu_tree:equal(Tree1, Tree4)),
 
     ok.
 
 
 test_delete_child() ->
-    Tree= teu_tree:new(teu_simple_tree_impl, []),
-    Child= teu_tree:new(teu_simple_tree_impl, []),
+    Tree = teu_tree:new(?TREE_IMPL_MODULE, []),
+    Child = teu_tree:new(?TREE_IMPL_MODULE, []),
     NewTree = teu_tree:add_child(Tree, Child, 1),
 
-    ?assertEqual(Tree, teu_tree:delete_child(Tree, 2)),
+    ?assert(teu_tree:equal(NewTree, teu_tree:delete_child(NewTree, 2))),
 
-    ?assertEqual(Tree, teu_tree:delete_child(NewTree, 1)),
+    ?assert(teu_tree:equal(Tree, teu_tree:delete_child(NewTree, 1))),
+
+    ok.
+
+
+test_set_get_data() ->
+    Tree1 = teu_tree:new(?TREE_IMPL_MODULE, []),
+    Val = a_value,
+
+    Tree2 = teu_tree:set_data(Tree1, Val),
+    Ret = teu_tree:get_data(Tree2),
+
+    ?assertEqual(Val, Ret),
 
     ok.

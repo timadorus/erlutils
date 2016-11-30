@@ -33,9 +33,9 @@
         {ok, Node :: term(), State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
--record(node_info, { state :: pending | complete | leaf
-                   , data :: term()  %% set by the generator
-                   }).
+%% -record(node_info, { state :: pending | complete | leaf
+%%                    , data :: term()  %% set by the generator
+%%                    }).
 
 %% ====================================================================
 %% API functions
