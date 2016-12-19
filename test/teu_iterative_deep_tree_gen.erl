@@ -15,7 +15,7 @@
 %% ====================================================================
 %% Behavior functions
 %% ====================================================================
--export([init_ctrl/1, init_gen/1, gen_nodes/3, is_final/1]).
+-export([init_ctrl/1, init_gen/2, gen_nodes/3, is_final/1]).
 
 -record(ctrl_state, { state :: pending | complete | leaf
                    , data :: term()  %% set by the generator
@@ -35,13 +35,13 @@
 init_ctrl(_Args) -> {ok, root, #ctrl_state{}}.
 
 
-%% init_gen/1
+%% init_gen/2
 %% --------------------------------------------------------------------
 %% @ doc initialize a tree generator.
 %% @ end
--spec init_gen(Args :: [term()]) -> {ok, State :: term()} | {error, Reason :: term()}.
+-spec init_gen(CtrlState  :: term(), Args :: [term()]) -> {ok, State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
-init_gen(_Args) -> #node_state{}.
+init_gen(_CtrlState, _Args) -> {ok, #node_state{}}.
 
 %% gen_nodes/2
 %% --------------------------------------------------------------------
@@ -51,7 +51,7 @@ init_gen(_Args) -> #node_state{}.
 %% @param Info additional information provided by the controler to the generator.
 %% @ end
 -spec gen_nodes(Parent :: term(), Info :: term(), GenState :: term()) ->
-        {ok, Nodes :: [term()], State :: term()} | {error, Reason :: term()}.
+        {ok, Nodes :: [term()], NewNodes :: [term()], State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 gen_nodes(_Parent, _Info, GenState) -> {ok, [], GenState}.
 

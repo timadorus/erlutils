@@ -17,7 +17,7 @@
 %% --------------------------------------------------------------------
 %% @ doc initialize a tree generator.
 %% @ end
--callback init_gen(Args :: [term()]) -> {ok, State :: term()} | {error, Reason :: term()}.
+-callback init_gen(CtrlState :: term(), Args :: [term()]) -> {ok, State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
 %% gen_nodes/2
@@ -28,10 +28,12 @@
 %%
 %% @param Parent parent node information
 %% @param Info additional information provided by the controler to the generator.
-%% @param
+%% @param GenState current state of the generator.
+%% @returns  the node to replace the parent, the list of newly generated end
+%%            points and the new State of the Generator
 %% @ end
 -callback gen_node(Parent :: term(), Info :: term(), GenState :: term()) ->
-        {ok, Nodes :: [term()], State :: term()} | {error, Reason :: term()}.
+        {ok, Node :: term(), NewNodes :: [term()], State :: term()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 
 %% is_final/1
@@ -100,6 +102,7 @@ start_link(Options) -> gen_server:start_link(?MODULE, Options, []).
 %% Behavioural functions
 %% ====================================================================
 -record(tree_gen_info, { tree_impl = teu_simple_tree_impl   :: atom()
+                       , tree_args = []                     :: list()
                        , generator                          :: atom()
                        , root_node                          :: term()
                        , control_state                      :: term()
@@ -134,12 +137,21 @@ init(Options) ->
 
     GenArgs = teu_application:opt(tree_args, Options, []),
     {RootNode, CtrlState} =
-        case Generator:init_gen(GenArgs) of
+        case Generator:init_ctrl(GenArgs) of
             {ok, RN, CS} -> {RN, CS};
-            {error, Reason} -> throw({gen_init_failed, Reason})
+            {error, R1} -> throw({gen_init_failed, R1})
         end,
 
-    {ok, #tree_gen_info{tree_impl = TreeImpl, generator = Generator,
+
+    GenState =
+        case Generator:init_gen(CtrlState, GenArgs) of
+            {ok, GS} -> GS;
+            {error, R2} -> throw({gen_init_failed, R2})
+        end,
+
+
+    {ok, #tree_gen_info{tree_impl = TreeImpl,  tree_args = TreeArgs,
+                        generator = Generator,
                         root_node = RootNode,
                         control_state = CtrlState, gen_state = GenState}}.
 
