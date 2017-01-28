@@ -52,7 +52,9 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start/1, start_link/1]).
+-export([ start/1, start_link/1, stop/1
+        , add_generator/2
+        ]).
 
 %% start/1
 %% --------------------------------------------------------------------
@@ -97,6 +99,23 @@ start(Options) -> gen_server:start(?MODULE, Options, []).
 start_link(Options) -> gen_server:start_link(?MODULE, Options, []).
 
 
+%% stop/1
+%% --------------------------------------------------------------------
+%% @doc stop the generator controler and all generators.
+%% @end
+-spec stop(CtrlPid :: pid()) -> ok.
+%% --------------------------------------------------------------------
+stop(CtrlPid) -> gen_server:cast(CtrlPid, stop).
+
+
+%% add_generator/2
+%% --------------------------------------------------------------------
+%% @doc add a new generator instance.
+%% @end
+-spec add_generator(CtrlPid :: pid(), Args :: term()) -> 
+          {ok, GenPid :: pid()} | {error, Reason :: term()}.
+%% --------------------------------------------------------------------
+add_generator(CtrlPid, Args) -> gen_server:call(CtrlPid, {add_gen, Args}).
 
 %% ====================================================================
 %% Behavioural functions
@@ -105,7 +124,7 @@ start_link(Options) -> gen_server:start_link(?MODULE, Options, []).
                        , tree_args = []                     :: list()
                        , generator                          :: atom()
                        , root_node                          :: term()
-                       , control_state                      :: term()
+                       , ctrl_state                         :: term()
                        , gen_state                          :: term()
                        }).
 
@@ -153,7 +172,7 @@ init(Options) ->
     {ok, #tree_gen_info{tree_impl = TreeImpl,  tree_args = TreeArgs,
                         generator = Generator,
                         root_node = RootNode,
-                        control_state = CtrlState, gen_state = GenState}}.
+                        ctrl_state = CtrlState, gen_state = GenState}}.
 
 
 %% handle_call/3
@@ -173,8 +192,10 @@ init(Options) ->
     Timeout :: non_neg_integer() | infinity,
     Reason :: term().
 %% ====================================================================
-handle_call(Request, From, State) ->
-    Reply = ok,
+handle_call({add_gen, Args}, _From, State) ->
+    Generator = State#tree_gen_info.generator,
+    CtrlState = State#tree_gen_info.ctrl_state,
+    Reply = Generator:init_gen(CtrlState, Args),
     {reply, Reply, State}.
 
 
@@ -189,8 +210,8 @@ handle_call(Request, From, State) ->
     NewState :: term(),
     Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
-handle_cast(Msg, State) ->
-    {noreply, State}.
+handle_cast(stop, State) ->
+    {stop, normal, State}.
 
 
 %% handle_info/2

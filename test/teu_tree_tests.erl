@@ -3,7 +3,7 @@
 %%
 %% @author sage
 %%
-%% @copyright 2009-2012 Timadorus Project
+%% @copyright 2009-2017 Timadorus Project
 
 -module(teu_tree_tests).
 
