@@ -16,7 +16,7 @@
 %% API functions
 %% ====================================================================
 -export([new/1, equal/2, add_child/3, delete_child/2, get_child/2, child_list/1,
-         get_data/1, set_data/2]).
+         get_data/1, set_data/2, node_count/1]).
 
 
 %% new/1
@@ -107,6 +107,14 @@ get_data(Tree) -> Tree#node.val.
 -spec set_data(Tree :: term(), Data :: term()) -> Tree ::term().
 %% --------------------------------------------------------------------
 set_data(Tree, Data) -> Tree#node{val = Data}.
+
+
+%% node_count/1
+%% --------------------------------------------------------------------
+-spec node_count(Tree :: term()) -> pos_integer().
+%% --------------------------------------------------------------------
+node_count(#node{val = Val, children = Childs}) ->
+    lists:foldl(fun(Node, Sum) -> Sum+1 end, 1, Childs).
 
 
 %% ====================================================================

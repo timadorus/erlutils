@@ -2,6 +2,8 @@
 %% @doc define an behavoiour for a tree.
 %%
 %% Indices for children in a node with n children range from 1-n
+%%
+%% The implementation must provide the capability of an empty tree.
 %% @end
 
 
@@ -75,7 +77,10 @@
 -callback set_data(Tree :: term(), Data :: term()) -> Tree ::term().
 %% --------------------------------------------------------------------
 
-%% set_data
+%% node_count/1
+%% --------------------------------------------------------------------
+-callback node_count(Tree :: term()) -> pos_integer().
+%% --------------------------------------------------------------------
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -83,7 +88,7 @@
 %% API functions
 %% ====================================================================
 -export([new/2, equal/2, add_child/3, children/1, get_child/2,
-         delete_child/2, set_data/2, get_data/1]).
+         delete_child/2, set_data/2, get_data/1, node_count/1]).
 
 -record(tree, { module :: atom()
               , root   :: term()
@@ -180,6 +185,16 @@ set_data(#tree{module = Module, root = Root}, Data) ->
 %% --------------------------------------------------------------------
 get_data(#tree{module = Module, root = Root}) ->
     Module:get_data(Root).
+
+
+%% node_count/1
+%% --------------------------------------------------------------------
+%% @doc get the number of nodes in the tree.
+%% @end
+-spec node_count(Tree :: term()) -> pos_integer().
+%% --------------------------------------------------------------------
+node_count(#tree{module = Module, root = Root}) ->
+    Module:node_count(Root).
 
 %% ====================================================================
 %% Internal functions

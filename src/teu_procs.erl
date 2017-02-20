@@ -1,4 +1,4 @@
-%% 
+%%
 %% @doc a collection of functions to help handling multiple processes.
 %%
 %% <p>the module also implements the gen_server behavior, bus should
@@ -20,7 +20,8 @@
 %% --------------------------------------------------------------------
 %% Exports
 %% --------------------------------------------------------------------
--export([wait_for_exit/1, wait_for_exit/2, wait_for_event/2, wait_for_event/3]).
+-export([wait_for_exit/1, wait_for_exit/2, wait_for_event/2, wait_for_event/3,
+         check_linked/2]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -32,39 +33,39 @@
 %% --------------------------------------------------------------------
 %% @doc wait for the process with the given pid to terminate.
 %% @end
--spec wait_for_exit(Pid :: pid()) -> 
+-spec wait_for_exit(Pid :: pid()) ->
 		  ok.
 %% --------------------------------------------------------------------
 wait_for_exit(Pid) ->
     MRef = erlang:monitor(process, Pid),
-    receive 
+    receive
         {'DOWN', MRef, _, _, _} ->
-            ok 
+            ok
     end.
 
 %% wait_for_exit/2
 %% --------------------------------------------------------------------
 %% @doc wait for the process with the given pid to terminate.
-%% 
-%% function will ensure that the process terminated with the 
-%% return value given for Reason. If the process has terminated before this 
-%% function was called, or has never existed, this function will return 
+%%
+%% function will ensure that the process terminated with the
+%% return value given for Reason. If the process has terminated before this
+%% function was called, or has never existed, this function will return
 %% immediately with 'ok' indicating success.
 %% @end
--spec wait_for_exit(Pid :: pid(), Reason :: term()) -> 
-		  ok 
+-spec wait_for_exit(Pid :: pid(), Reason :: term()) ->
+		  ok
         | {error, {expected, Exp :: term()},
 		          {value,    Val :: term()}}.
 %% --------------------------------------------------------------------
  wait_for_exit(Pid, Reason) ->
     MRef = erlang:monitor(process, Pid),
-    receive 
+    receive
         {'DOWN', MRef, _, _, noproc} ->
             ok;
         {'DOWN', MRef, _, _, Reason} ->
             ok;
         {'DOWN', MRef, _, _, Val} ->
-            {error, {expected, Reason},{value, Val}} 
+            {error, {expected, Reason},{value, Val}}
     end.
 
 %% wait_for_event/2
@@ -78,7 +79,7 @@ wait_for_exit(Pid) ->
 %% if the event is not seen within 3000 milliseconds, {error, timeout} will
 %% be returned
 %%
--spec wait_for_event(EventMgrPid :: pid(), Event :: term()) -> 
+-spec wait_for_event(EventMgrPid :: pid(), Event :: term()) ->
          {ok, Event :: term()} | {error, timeout}.
 %% --------------------------------------------------------------------
 wait_for_event(EventMgrPid, Event) ->
@@ -93,10 +94,10 @@ wait_for_event(EventMgrPid, Event) ->
 %% the function will register a handler with the event manager given, and
 %% return if the event is seen.
 %%
-%% if the event is not seen within a number of milliseconds set by Timeout, 
+%% if the event is not seen within a number of milliseconds set by Timeout,
 %% {error, timeout} will be returned.
 %%
--spec wait_for_event(EventMgrPid :: pid(), Event :: term(), Timeout :: pos_integer()) -> 
+-spec wait_for_event(EventMgrPid :: pid(), Event :: term(), Timeout :: pos_integer()) ->
         {ok, Event :: term()} | {error, timeout}.
 %% --------------------------------------------------------------------
 wait_for_event(EventMgrPid, Event, Timeout) ->
@@ -106,8 +107,21 @@ wait_for_event(EventMgrPid, Event, Timeout) ->
     gen_server:call(ServerPid, {wait_for_event, TRef}).
 
 
+%% check_linked/2
+%% --------------------------------------------------------------------
+%% @doc check whether one process is linked to another.
+%%
+%% if the process with Pid1 is linked to the process with Pid2 return true, false otherwise.
+-spec check_linked(Pid1 :: pid(), Pid2 :: pid()) -> true | false.
+%% --------------------------------------------------------------------
+check_linked(Pid1, Pid2) when is_pid(Pid1) and is_pid(Pid2) ->
+    {links, Links} = process_info(Pid1, links),
+    lists:member(Pid2, Links);
+
+check_linked(_Pid1, _Pid2) -> false.
+
 %% ====================================================================
-%% Behavioural functions 
+%% Behavioural functions
 %% ====================================================================
 -record(state, {caller = none :: {pid(), Tag :: term()} | none,
                 timer_ref :: timer:tref()

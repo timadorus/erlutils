@@ -98,21 +98,22 @@ start(Options) -> gen_server:start(?MODULE, Options, []).
 %% --------------------------------------------------------------------
 start_link(Options) -> gen_server:start_link(?MODULE, Options, []).
 
-
 %% stop/1
 %% --------------------------------------------------------------------
-%% @doc stop the generator controler and all generators.
+%% @doc stop generator system.
+%%
+%% @param Pid pid of the tree to stop.
 %% @end
--spec stop(CtrlPid :: pid()) -> ok.
+-spec stop(Pid :: pid()) -> ok.
 %% --------------------------------------------------------------------
-stop(CtrlPid) -> gen_server:cast(CtrlPid, stop).
+stop(Pid) -> gen_server:cast(Pid, stop).
 
 
 %% add_generator/2
 %% --------------------------------------------------------------------
 %% @doc add a new generator instance.
 %% @end
--spec add_generator(CtrlPid :: pid(), Args :: term()) -> 
+-spec add_generator(CtrlPid :: pid(), Args :: term()) ->
           {ok, GenPid :: pid()} | {error, Reason :: term()}.
 %% --------------------------------------------------------------------
 add_generator(CtrlPid, Args) -> gen_server:call(CtrlPid, {add_gen, Args}).

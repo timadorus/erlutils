@@ -39,7 +39,7 @@ api_test_() ->
               ok
       end,
       fun(_Foo) -> [ ?_test(test_init())
-                   , ?_test(test_add_generator())
+                   , ?_test(test_gen_node())
                    ]
       end }.
 
@@ -59,6 +59,7 @@ process_test_() ->
       end,
       fun(_Foo) -> [ ?_test(test_start())
                    , ?_test(test_start_link())
+                   , ?_test(test_stop())
                    , ?_test(test_add_generator())
                    ]
       end }.
@@ -80,39 +81,77 @@ test_init() ->
     ok.
 
 
+test_start() ->
+    Options = [ {generator, teu_iterative_deep_tree_gen}
+              ],
+
+    {ok, CtrlPid} = teu_tree_gen:start(Options),
+    ?assert(is_pid(CtrlPid)),
+
+    ok = teu_tree_gen:stop(CtrlPid),
+
+    teu_procs:wait_for_exit(CtrlPid),
+
+   ok.
+
+
+test_start_link() ->
+    Options = [ {generator, teu_iterative_deep_tree_gen}
+              ],
+
+    {ok, Pid} = teu_tree_gen:start_link(Options),
+
+    ?assertMatch(P when is_pid(P), Pid),
+    ?assert(teu_procs:check_linked(self(), Pid)),
+
+    unlink(Pid),
+
+    ok = teu_tree_gen:stop(Pid),
+
+    teu_procs:wait_for_exit(Pid),
+
+    ok.
+
+
+test_stop() ->
+    Options = [ {generator, teu_iterative_deep_tree_gen}
+              ],
+
+    {ok, Pid} = teu_tree_gen:start(Options),
+
+    teu_tree_gen:stop(Pid),
+
+    teu_procs:wait_for_exit(Pid),
+
+    ok.
+
+
 test_add_generator() ->
     Options = [ {generator, teu_iterative_deep_tree_gen}
               ],
 
     TGen = teu_tree_gen:init(Options),
 
-    {ok, GPid} = teu_tree_gen:add_generator(TGen,[]),
+    {ok, _GPid} = teu_tree_gen:add_generator(TGen,[]),
 
     ok.
 
-test_start() -> 
+
+test_gen_node() ->
+
     Options = [ {generator, teu_iterative_deep_tree_gen}
               ],
 
-    {ok, CtrlPid} = teu_tree_gen:start(Options),
-    ?assert(is_pid(CtrlPid)),
-    
-    ok = teu_tree_gen:stop(CtrlPid),
-    
-    teu_procs:wait_for_exit(CtrlPid),
-    
-   ok.
+    CtrlData = 10,  %% create 10 more nodes
 
-test_start_link() -> 
-    Options = [ {generator, teu_iterative_deep_tree_gen}
-              ],
+    {ok, Pid} = teu_tree_gen:start(Options),
 
-    {ok, CtrlPid} = teu_tree_gen:start(Options),
-    ?assert(is_pid(CtrlPid)),
+    Tree = teu_tree_gen:generate(CtrlData),
 
-    unlink(CtrlPid),
-    ok = teu_tree_gen:stop(CtrlPid),
-    
-    teu_procs:wait_for_exit(CtrlPid),
-    
+    ?assertEqual(CtrlData, teu_tree:node_count(Tree)),
+
+    teu_tree_gen:stop(Pid),
+
+    teu_procs:wait_for_exit(Pid),
+
     ok.
