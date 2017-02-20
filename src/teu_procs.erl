@@ -124,7 +124,7 @@ check_linked(_Pid1, _Pid2) -> false.
 %% Behavioural functions
 %% ====================================================================
 -record(state, {caller = none :: {pid(), Tag :: term()} | none,
-                timer_ref :: timer:tref()
+                timer_ref :: timer:tref() | undefined
                }).
 
 %% init/1
