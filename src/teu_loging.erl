@@ -28,7 +28,7 @@
 %% --------------------------------------------------------------------
 -spec log_protocol_msg(PID::pid(), Module::atom(), Msg::term()) -> ok.
 log_protocol_msg(PID, Module, Msg) ->
-    
+
     %% for now, just write to stdout
     io:fwrite("~s:~w: MSG: ~p~n", [Module, PID, Msg]),
     ok.

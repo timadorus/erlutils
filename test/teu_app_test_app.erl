@@ -27,16 +27,16 @@
 %% ====================================================================
 %% @doc <a href="http://www.erlang.org/doc/apps/kernel/application.html#Module:start-2">application:start/2</a>
 -spec start(Type :: normal | {takeover, Node} | {failover, Node}, Args :: term()) ->
-	{ok, Pid :: pid()}
-	| {ok, Pid :: pid(), State :: term()}
-	| {error, Reason :: term()}.
+  {ok, Pid :: pid()}
+  | {ok, Pid :: pid(), State :: term()}
+  | {error, Reason :: term()}.
 %% ====================================================================
 start(_Type, StartArgs) ->
     case teu_app_test_sup:start_link(StartArgs) of
-		{ok, Pid} ->
-			{ok, Pid};
-		Error ->
-			Error
+    {ok, Pid} ->
+      {ok, Pid};
+    Error ->
+      Error
     end.
 
 %% stop/1

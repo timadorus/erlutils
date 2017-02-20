@@ -124,6 +124,7 @@ function update {
     rebar3 eunit
     rebar3 cover
     rebar3 as test dialyzer
+    rebar3 lint
 
     do_ct
 }

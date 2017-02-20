@@ -1,5 +1,5 @@
 %% @author sage
-%% @doc tools and helper functions to measure the performance of functions 
+%% @doc tools and helper functions to measure the performance of functions
 %% and modules.
 %%
 %% percentile calculation by rodo. See: https://gist.github.com/rodo/5495391
@@ -13,7 +13,7 @@
 %% ====================================================================
 -include_lib("eunit/include/eunit.hrl").
 
--export([percentile/2, percentile95/1,percentile98/1]).
+-export([percentile/2, percentile95/1, percentile98/1]).
 -export([test_avg/5, test_avg_func/7, test_avg_list/5]).
 
 -ifdef(TEST).
@@ -23,73 +23,73 @@
 
 %% test_avg/5
 %% ----------------------------------------------------------------------------
-%% @doc run function N number of times, 
-%% timing each invocation and computing minimum, maximum, Median and average 
+%% @doc run function N number of times,
+%% timing each invocation and computing minimum, maximum, Median and average
 %% for all runs.
 %%
 %% function returns median of all tests.
 %% @end
--spec test_avg(Title::string(), Module :: atom(), Function :: atom(), 
-               Args :: list(), N :: pos_integer()) -> integer(). 
+-spec test_avg(Title::string(), Module :: atom(), Function :: atom(),
+               Args :: list(), N :: pos_integer()) -> integer().
 %% ----------------------------------------------------------------------------
 test_avg(T, M, F, A, N) when N > 0 ->
-    L = test_loop(M,F,A,N,[]),
-    test_calc(T,L).
+    L = test_loop(M, F, A, N, []),
+    test_calc(T, L).
 
 
 %% test_avg_func/5
 %% ----------------------------------------------------------------------------
-%% @doc run function N number of times, calling a generator each time. 
-%% timing each invocation and computing minimum, maximum, Median and average 
+%% @doc run function N number of times, calling a generator each time.
+%% timing each invocation and computing minimum, maximum, Median and average
 %% for all runs.
 %%
 %% generator is a function of type:  f(A) -> B
 %%
-%% the result of the generator will be prependet to the argument list of 
+%% the result of the generator will be prependet to the argument list of
 %% the next invocation and used as input for the next call to the generator.
 %%
 %% function returns median of all tests.
 %% @end
--spec test_avg_func(Title::string(), Module :: atom(), Function :: atom(), 
-                    Args :: list(), GenInput :: term(), Generator :: function(), 
-                    N :: pos_integer()) -> integer(). 
+-spec test_avg_func(Title::string(), Module :: atom(), Function :: atom(),
+                    Args :: list(), GenInput :: term(), Generator :: function(),
+                    N :: pos_integer()) -> integer().
 %% ----------------------------------------------------------------------------
-test_avg_func(T,M,F,A,L,G,N) when N > 0 ->
+test_avg_func(T, M, F, A, L, G, N) when N > 0 ->
     ResList = test_loop_func(M, F, A, L, G, N, []),
     test_calc(T, ResList).
 
 %% test_avg_list/5
 %% ----------------------------------------------------------------------------
 %% @doc run function with args, with one element of argslist for each invocation,
-%% timing each invocation and computing minimum, maximum, Median and average 
+%% timing each invocation and computing minimum, maximum, Median and average
 %% for all runs.
 %%
 %% function returns median of all tests.
 %% @end
--spec test_avg_list(Title::string(), Module :: atom(), Function :: atom(), 
-                    Args :: list(), ArgList :: list()) -> integer(). 
+-spec test_avg_list(Title::string(), Module :: atom(), Function :: atom(),
+                    Args :: list(), ArgList :: list()) -> integer().
 %% ----------------------------------------------------------------------------
-test_avg_list(Title,Module,Function,Args,ArgList) when length(ArgList) > 0  ->
+test_avg_list(Title, Module, Function, Args, ArgList) when length(ArgList) > 0  ->
   ResList = test_loop_list(Module, Function, Args, ArgList, []),
-  test_calc(Title,ResList).
+  test_calc(Title, ResList).
 
 
 %% percentile95/1
 %% ----------------------------------------------------------------------
-%% @doc return the 95th percentile of the list 
+%% @doc return the 95th percentile of the list
 %% @end
 -spec percentile95(L::[float()|integer()]) -> float().
 %% ----------------------------------------------------------------------
-percentile95(L)-> percentile(L,0.95).
+percentile95(L)-> percentile(L, 0.95).
 
 
 %% percentile98/1
 %% ----------------------------------------------------------------------
-%% @doc return the 98th percentile of the list 
+%% @doc return the 98th percentile of the list
 %% @end
 -spec percentile98(L::[float()|integer()]) -> float().
 %% ----------------------------------------------------------------------
-percentile98(L)-> percentile(L,0.98).
+percentile98(L)-> percentile(L, 0.98).
 
 
 %% percentile/2
@@ -98,7 +98,7 @@ percentile98(L)-> percentile(L,0.98).
 %%
 %% L: list of values
 %% P: nth percentile as percentage (0.0 < P < 1.0)
-%% 
+%%
 %% @end
 -spec percentile(L::[number()], P::float()) -> float().
 %% ----------------------------------------------------------------------
@@ -106,21 +106,21 @@ percentile(L, P)->
     K=(length(L) - 1) * P,
     F=floor(K),
     C=ceiling(K),
-    final(lists:sort(L),F,C,K).
+    final(lists:sort(L), F, C, K).
 
 
 %% ====================================================================
 %% Percentile Calculations
 %% ====================================================================
 
-final(L,F,C,K) when (F == C)->
-    lists:nth(trunc(K)+1,L);
-final(L,F,C,K) ->
-    pos(L,F,C,K) + pos(L,C,K,F).
- 
- 
-pos(L,A,B,C)->
-    lists:nth(trunc(A)+1,L) * (B-C).
+final(L, F, C, K) when (F == C)->
+    lists:nth(trunc(K)+1, L);
+final(L, F, C, K) ->
+    pos(L, F, C, K) + pos(L, C, K, F).
+
+
+pos(L, A, B, C)->
+    lists:nth(trunc(A)+1, L) * (B-C).
 
 %% @doc http://schemecookbook.org/Erlang/NumberRounding
 floor(X) ->
@@ -146,7 +146,7 @@ ceiling(X) ->
 %% Performance Tests
 %% ====================================================================
 -spec test_calc(Title::string(), [number()]) -> integer().
-test_calc(Title, L) -> 
+test_calc(Title, L) ->
     Length = length(L),
     Min = lists:min(L),
     Max = lists:max(L),
@@ -154,7 +154,7 @@ test_calc(Title, L) ->
     P90 = round(percentile(L, 0.9)),
     Med = lists:nth(round((Length / 2)), lists:sort(L)),
     Avg = round(lists:foldl(fun(X, Sum) -> X + Sum end, 0, L) / Length),
-    io:format("Performance for ~p~n",[Title]),
+    io:format("Performance for ~p~n", [Title]),
     io:format("Range: ~b - ~b mics~n"
               "P10: ~b, P90: ~b~n"
               "Median: ~b mics~n"
@@ -166,7 +166,7 @@ test_loop(_M, _F, _A, 0, List) ->
     List;
 test_loop(M, F, A, N, List) ->
     {T, _Result} = timer:tc(M, F, [N|A]),
-    ?debugFmt("~p: ~p mics",[N,T]),
+    ?debugFmt("~p: ~p mics", [N, T]),
     test_loop(M, F, A, N - 1, [T|List]).
 
 test_loop_func(_M, _F, _A, _L, _G, 0, List) ->

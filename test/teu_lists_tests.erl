@@ -18,9 +18,6 @@
 %% Fixtures
 %%
 
-%% info_test_() ->
-%%     { setup, fun() -> ok end,
-%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
 
 internals_test_() ->
     { "test internal functions",
@@ -38,8 +35,31 @@ internals_test_() ->
                     , ?_test(test_list_equal())
                     , ?_test(test_match_message())
                     , ?_test(test_zipfill())
+                    , ?_test(test_listlen_equal3())
                    ]
       end }.
+
+
+test_listlen_equal3() ->
+    ?assertEqual(true, teu_lists:listlen_equal([], [], [])),
+
+    ?assertEqual(false, teu_lists:listlen_equal([1], [], [])),
+    ?assertEqual(false, teu_lists:listlen_equal([], [1], [])),
+    ?assertEqual(false, teu_lists:listlen_equal([], [], [1])),
+
+    ?assertEqual(false, teu_lists:listlen_equal([1], [1], [])),
+    ?assertEqual(false, teu_lists:listlen_equal([], [1], [1])),
+    ?assertEqual(false, teu_lists:listlen_equal([1], [], [1])),
+
+    ?assertEqual(false, teu_lists:listlen_equal([1, 2], [1, 1], [1])),
+    ?assertEqual(false, teu_lists:listlen_equal([1, 2], [1], [1, 1])),
+    ?assertEqual(false, teu_lists:listlen_equal([1], [1, 2], [1, 1])),
+
+    ?assertEqual(true, teu_lists:listlen_equal([1], [1], [1])),
+    ?assertEqual(true, teu_lists:listlen_equal([2], [3], [4])),
+    ?assertEqual(true, teu_lists:listlen_equal([1], [zwei], [3.0])),
+
+    ok.
 
 test_match_message() ->
     TestCases = [{atom, atom, true},
@@ -77,7 +97,7 @@ test_keylist_equal() ->
     Keylist4 = [{a, 1}, {b, 2}, {b, zwo}],
     Keylist5 = [{a, 1}, {b, 2}, {c, 3}, {d, 4}],
 
-    ?assertEqual(true, teu_lists:keylist_equal(2, [],[])),
+    ?assertEqual(true, teu_lists:keylist_equal(2, [], [])),
 
     ?assertEqual(true, teu_lists:keylist_equal(2, Keylist1, Keylist1)),
 
@@ -105,7 +125,7 @@ test_kvlist_equal() ->
     Keylist4 = [{a, 1}, {b, 2}, {b, zwo}],
     Keylist5 = [{a, 1}, {b, 2}, {c, 3}, {d, 4}],
 
-    ?assertEqual(true, teu_lists:kvlist_equal([],[])),
+    ?assertEqual(true, teu_lists:kvlist_equal([], [])),
 
     ?assertEqual(true, teu_lists:kvlist_equal(Keylist1, Keylist1)),
 
@@ -134,7 +154,7 @@ test_list_equal() ->
     Keylist4 = [a, b, b],
     Keylist5 = [a, b, c, d],
 
-    ?assertEqual(true, teu_lists:list_equal([],[])),
+    ?assertEqual(true, teu_lists:list_equal([], [])),
 
     ?assertEqual(true, teu_lists:list_equal(Keylist1, Keylist1)),
 
@@ -153,14 +173,14 @@ test_list_equal() ->
     ok.
 
 test_zipfill() ->
-   ?assertEqual([], teu_lists:zipfill([],[], a)),
-   ?assertEqual([{1,2}], teu_lists:zipfill([1],[2], a)),
-   ?assertEqual([{1,2},{3,4}], teu_lists:zipfill([1,3],[2,4], a)),
+   ?assertEqual([], teu_lists:zipfill([], [], a)),
+   ?assertEqual([{1, 2}], teu_lists:zipfill([1], [2], a)),
+   ?assertEqual([{1, 2}, {3, 4}], teu_lists:zipfill([1, 3], [2, 4], a)),
 
-    OutList1 = [{1,4}, {2,5}, {3,a}],
-    ?assertEqual(OutList1, teu_lists:zipfill([1,2,3],[4,5], a)),
+    OutList1 = [{1, 4}, {2, 5}, {3, a}],
+    ?assertEqual(OutList1, teu_lists:zipfill([1, 2, 3], [4, 5], a)),
 
-    OutList2 = [{1,8}, {2,9}, {b,0}],
-    ?assertEqual(OutList2, teu_lists:zipfill([1,2],[8,9,0], b)),
+    OutList2 = [{1, 8}, {2, 9}, {b, 0}],
+    ?assertEqual(OutList2, teu_lists:zipfill([1, 2], [8, 9, 0], b)),
 
     ok.

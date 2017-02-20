@@ -78,7 +78,7 @@ start_link(Options) ->
 %%        not make sense (e.g. something other than an atom)
 %%
 -spec start(Options::[{register, atom()} | register | verbose]) ->
-		  {ok, Pid::pid()} | ignore | {error, Error::any()}.
+      {ok, Pid::pid()} | ignore | {error, Error::any()}.
 %% --------------------------------------------------------------------
 start(Options) ->
     RegisterName = teu_application:opt(register, Options),
@@ -233,8 +233,8 @@ stop(Pid) -> gen_server:cast(Pid, stop).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([Options]) ->
-	Verbose = teu_application:opt(verbose, Options),
-%% 	?debugFmt("Options: ~p, opt_verbose: ~p~n",[Options, Verbose]),
+  Verbose = teu_application:opt(verbose, Options),
+%%   ?debugFmt("Options: ~p, opt_verbose: ~p~n",[Options, Verbose]),
 
     {ok, #state{opt_verbose = Verbose}}.
 
@@ -297,27 +297,27 @@ handle_cast({teu_async_mock_internal_check_for_msg, FilterPred, ObserverPid}, St
     {noreply, State#state{observer=ObserverPid, observerPred=FilterPred}};
 
 handle_cast({teu_async_mock_internal_received_msg, _FilterPred, _ObserverPid}, State) ->
-	{noreply, State#state{observer=none}};
+  {noreply, State#state{observer=none}};
 
 handle_cast(Msg, State) ->
 
-	case State#state.opt_verbose of
-		true -> io:format("have seen message: ~p\n",[Msg]);
-		_    -> ok
+  case State#state.opt_verbose of
+    true -> io:format("have seen message: ~p\n", [Msg]);
+    _    -> ok
     end,
 
     OldStack = State#state.messageStack,
 
-	%% notify observer
+  %% notify observer
     case State#state.observer of
-		Pid when is_pid(Pid) ->
-			ObserverPred = State#state.observerPred,
-			case ObserverPred(Msg) of
-				true -> Pid ! {received_msg, Msg};
+    Pid when is_pid(Pid) ->
+      ObserverPred = State#state.observerPred,
+      case ObserverPred(Msg) of
+        true -> Pid ! {received_msg, Msg};
                 _ -> ok
-				end;
-	    _ -> ok
-	end,
+        end;
+      _ -> ok
+  end,
 
     {noreply, State#state{lastMessage = Msg, messageStack = [Msg|OldStack]}}.
 

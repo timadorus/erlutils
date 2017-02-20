@@ -18,9 +18,6 @@
 %% Fixtures
 %%
 
-%% info_test_() ->
-%%     { setup, fun() -> ok end,
-%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
 
 internals_test_() ->
     { "test internal functions",
@@ -47,24 +44,24 @@ internals_test_() ->
 %% should waiting fail: eunit has a 15 sec standard  timeout
 test_wait_for_exit() ->
 
-	{ok, MPid} = teu_async_mock:start([]),
+  {ok, MPid} = teu_async_mock:start([]),
 
-	teu_async_mock:stop(MPid),
+  teu_async_mock:stop(MPid),
 
-	teu_procs:wait_for_exit(MPid),
+  teu_procs:wait_for_exit(MPid),
 
-	ok.
+  ok.
 
 
 test_wait_for_specific_exit() ->
 
-	{ok, MPid} = teu_async_mock:start([]),
+  {ok, MPid} = teu_async_mock:start([]),
 
-	teu_async_mock:stop(MPid),
+  teu_async_mock:stop(MPid),
 
-	teu_procs:wait_for_exit(MPid,normal),
+  teu_procs:wait_for_exit(MPid, normal),
 
-	ok.
+  ok.
 
 test_wait_for_event_success() ->
 

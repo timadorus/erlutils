@@ -13,7 +13,7 @@
 %% API functions
 %% ====================================================================
 -export([kvlist_equal/2, keylist_equal/3, list_equal/2, contains_message/2,
-         mapwhile/2, zipfill/3]).
+         mapwhile/2, zipfill/3, listlen_equal/3]).
 
 -ifdef(TEST).
 -export([match_message/2]).
@@ -29,7 +29,7 @@
 -spec kvlist_equal(KVList1::[{atom(), term()}], KVList2::[{atom(), term()}]) -> boolean().
 %% --------------------------------------------------------------------
 kvlist_equal(KVList1, KVList2) ->
-    keylist_equal(1,KVList1, KVList2).
+    keylist_equal(1, KVList1, KVList2).
 
 %% keylist_equal/3
 %% --------------------------------------------------------------------
@@ -40,13 +40,11 @@ kvlist_equal(KVList1, KVList2) ->
 %% @end
 -spec keylist_equal(N::pos_integer(), Keylist1::[tuple()], Keylist2::[tuple()]) -> boolean().
 %% --------------------------------------------------------------------
-keylist_equal(N,Keylist1, Keylist2) ->
+keylist_equal(N, Keylist1, Keylist2) ->
     Sorted1 = lists:keysort(N, Keylist1),
     Sorted2 = lists:keysort(N, Keylist2),
     Result = lists:ukeymerge(N, Sorted1, Sorted2),
-    (length(Keylist1) == length(Result)) and
-        (length(Keylist2) == length(Result)).
-
+    listlen_equal(Keylist1, Keylist2, Result).
 
 %% list_equal/2
 %% --------------------------------------------------------------------
@@ -60,8 +58,18 @@ list_equal(List1, List2) ->
     Sorted1 =lists:sort(List1),
     Sorted2 =lists:sort(List2),
     Result = lists:umerge(Sorted1, Sorted2),
-    (length(List1) == length(Result)) and
-        (length(List2) == length(Result)).
+    listlen_equal(List1, List2, Result).
+
+
+%% listlen_equal/3
+%% --------------------------------------------------------------------
+%% @doc will return true if and only if all three lists are of the same length
+%% @end
+-spec listlen_equal(L1 :: list(), L1 :: list(), L1 :: list()) -> true | false.
+%% --------------------------------------------------------------------
+listlen_equal(L1, L2, L3) ->
+    (length(L1) == length(L2)) and
+        (length(L2) == length(L3)).
 
 %% contains_message/2
 %% ------------------------------------------------------------------
@@ -139,20 +147,20 @@ match_message(Pattern, Message)
     Pattern =:= Message;
 
 match_message(Pattern, Message)
-  when is_function(Pattern,1) ->
+  when is_function(Pattern, 1) ->
     Pattern(Message);
 
 match_message([FirstPat|PatternRest], [FirstMsg|MessageRest])
   when is_function(FirstPat, 1) ->
     case FirstPat(FirstMsg) of
         false -> false;
-        true -> match_message(PatternRest,MessageRest)
+        true -> match_message(PatternRest, MessageRest)
     end;
 
 match_message([FirstPat|PatternRest], [FirstMsg|MessageRest]) ->
     case FirstPat =:= FirstMsg of
          false -> false;
-   true -> match_message(PatternRest,MessageRest)
+   true -> match_message(PatternRest, MessageRest)
     end;
 
 match_message([], []) ->

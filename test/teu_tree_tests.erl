@@ -21,9 +21,6 @@
 %% Fixtures
 %%
 
-%% info_test_() ->
-%%     { setup, fun() -> ok end,
-%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
 
 api_test_() ->
     { "test behavior api",
@@ -85,9 +82,9 @@ test_get_child() ->
 
     ?assertEqual(undefined, teu_tree:get_child(Tree, [1])),
 
-    ?assertEqual(undefined, teu_tree:get_child(NewTree, [1,1])),
+    ?assertEqual(undefined, teu_tree:get_child(NewTree, [1, 1])),
 
-    ?assertThrow(bad_args, teu_tree:get_child(Tree, [1,1])),
+    ?assertThrow(bad_args, teu_tree:get_child(Tree, [1, 1])),
 
     ok.
 
@@ -105,8 +102,8 @@ test_add_child() ->
     NewTree = teu_tree:add_child(Tree, Child, [1]),
     ?assertEqual([Child], teu_tree:children(NewTree)),
 
-    DeepTree = teu_tree:add_child(Tree, Child, [1,1]),
-    ?assertEqual(Child, teu_tree:get_child(DeepTree, [1,1])),
+    DeepTree = teu_tree:add_child(Tree, Child, [1, 1]),
+    ?assertEqual(Child, teu_tree:get_child(DeepTree, [1, 1])),
 
     ok.
 

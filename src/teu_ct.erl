@@ -11,22 +11,22 @@
 
 
 config([F|R], Config) when R /= [] ->
-    case lists:keysearch(F,1,Config) of
-    {value,{F,Val}} ->
+    case lists:keysearch(F, 1, Config) of
+    {value, {F, Val}} ->
         config(R, Val);
     _ ->
-        io:format("Could not find element ~p in Config.~n",[F]),
+        io:format("Could not find element ~p in Config.~n", [F]),
         undefined
     end;
 
 config([Rest], Config) -> config(Rest, Config);
 
 config(Key, Config) ->
-    case lists:keysearch(Key,1,Config) of
-    {value,{Key,Val}} ->
+    case lists:keysearch(Key, 1, Config) of
+    {value, {Key, Val}} ->
         Val;
     _ ->
-        io:format("Could not find element ~p in Config.~n",[Key]),
+        io:format("Could not find element ~p in Config.~n", [Key]),
         undefined
     end.
 

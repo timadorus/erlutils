@@ -67,7 +67,8 @@
 %% <dl>
 %% <dt><code>generator</code></dt><dd>Module implementing the generator (<code>atom()</code>)<dd>
 %% <dt><code>gen_args</code></dt><dd>Arguments for the generator/controler (Default: [])<dd>
-%% <dt><code>tree_impl</code></dt><dd>Module implementing the tree (<code>atom()</code>, Default: teu_simple_tree_impl)<dd>
+%% <dt><code>tree_impl</code></dt>
+%%        <dd>Module implementing the tree (<code>atom()</code>, Default: teu_simple_tree_impl)<dd>
 %% <dt><code>tree_args</code></dt><dd>Arguments for the tree implementation (Default: [])<dd>
 %% </dl>
 %%

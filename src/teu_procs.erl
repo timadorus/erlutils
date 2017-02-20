@@ -34,7 +34,7 @@
 %% @doc wait for the process with the given pid to terminate.
 %% @end
 -spec wait_for_exit(Pid :: pid()) ->
-		  ok.
+      ok.
 %% --------------------------------------------------------------------
 wait_for_exit(Pid) ->
     MRef = erlang:monitor(process, Pid),
@@ -53,9 +53,9 @@ wait_for_exit(Pid) ->
 %% immediately with 'ok' indicating success.
 %% @end
 -spec wait_for_exit(Pid :: pid(), Reason :: term()) ->
-		  ok
+      ok
         | {error, {expected, Exp :: term()},
-		          {value,    Val :: term()}}.
+              {value,    Val :: term()}}.
 %% --------------------------------------------------------------------
  wait_for_exit(Pid, Reason) ->
     MRef = erlang:monitor(process, Pid),
@@ -65,7 +65,7 @@ wait_for_exit(Pid) ->
         {'DOWN', MRef, _, _, Reason} ->
             ok;
         {'DOWN', MRef, _, _, Val} ->
-            {error, {expected, Reason},{value, Val}}
+            {error, {expected, Reason}, {value, Val}}
     end.
 
 %% wait_for_event/2

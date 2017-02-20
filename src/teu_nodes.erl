@@ -15,8 +15,8 @@
 %%
 %% Exported Functions
 %%
--export([split_node/1, split_node_to_atom/1, make_short_node/1, make_node/1, make_node/2, 
-		 make_numbered_short_nodes/3, make_numbered_nodes/3, make_numbered_nodes/4]).
+-export([split_node/1, split_node_to_atom/1, make_short_node/1, make_node/1, make_node/2,
+     make_numbered_short_nodes/3, make_numbered_nodes/3, make_numbered_nodes/4]).
 
 %%
 %% API Functions
@@ -31,8 +31,8 @@ split_node_to_atom(NodeAndHost) ->
 
 %% @doc slit the name of a node into node- and host part.
 %% @end
--spec split_node(Node::atom()|string()) -> 
-		  {NodeName::string(), HostName::string()}.
+-spec split_node(Node::atom()|string()) ->
+      {NodeName::string(), HostName::string()}.
 split_node(Node) when is_atom(Node) ->
    split_node(atom_to_list(Node), []).
 split_node([], UseAsHost )    -> { [], UseAsHost };
@@ -40,7 +40,7 @@ split_node([ $@ | T ], Node ) -> { Node, T };
 split_node([ H | T ], Node )  -> split_node(T,  Node ++ [H] ).
 
 %% @doc make a valid erlang node name from Name,
-%% using the hostname part of this node. This will either produce a short or 
+%% using the hostname part of this node. This will either produce a short or
 %% a long name depending on how the node was set up.
 %% @end
 -spec make_node(Name::atom()) -> atom().
@@ -66,43 +66,43 @@ make_node(Name, Host) ->
 %% @end
 -spec make_node(Name::atom(), Number::pos_integer(), Host::atom() | string()) -> atom().
 make_node(Name, Number, Host) when is_atom(Host)->
-	make_node(Name, Number, atom_to_list(Host));
+  make_node(Name, Number, atom_to_list(Host));
 
 make_node(Name, Number, Host) when is_list(Host)->
     list_to_atom(atom_to_list(Name)
-				++ erlang:integer_to_list(Number) 
-				++ "@" 
-				++ Host).
+        ++ erlang:integer_to_list(Number)
+        ++ "@"
+        ++ Host).
 
 %% @doc make a number of node names from a numbers range, a label atom.
 %% the host name of the local host is based on the node() function.
 %% @end
--spec make_numbered_nodes(Label::atom(), StartNum::pos_integer(), 
-						  EndNum::pos_integer()) ->
-		  Nodes::[atom()].
+-spec make_numbered_nodes(Label::atom(), StartNum::pos_integer(),
+              EndNum::pos_integer()) ->
+      Nodes::[atom()].
 make_numbered_nodes(Label, StartNum, EndNum) ->
     {_MyName, Hostname} = split_node(node()),
-	make_numbered_nodes(Label, StartNum, EndNum, [list_to_atom(Hostname)]).
+  make_numbered_nodes(Label, StartNum, EndNum, [list_to_atom(Hostname)]).
 
 %% @doc make a number of node names from a numbers range, a label atom.
 %% the host name of the local host as retrieved by inet:gethostname will be used.
 %% @end
--spec make_numbered_short_nodes(Label::atom(), StartNum::pos_integer(), 
-								EndNum::pos_integer()) ->
-		  Nodes::[atom()].
+-spec make_numbered_short_nodes(Label::atom(), StartNum::pos_integer(),
+                EndNum::pos_integer()) ->
+      Nodes::[atom()].
 make_numbered_short_nodes(Label, StartNum, EndNum) ->
-	{ok, Hostname} = inet:gethostname(),
-	make_numbered_nodes(Label, StartNum, EndNum, [list_to_atom(Hostname)]).
+  {ok, Hostname} = inet:gethostname(),
+  make_numbered_nodes(Label, StartNum, EndNum, [list_to_atom(Hostname)]).
 
 %% @doc make a number of node names from a numbers range, a label atom and a list of hosts
 %% @end
 -spec make_numbered_nodes(Label::atom(), StartNum::pos_integer(), EndNum::pos_integer(),
-					   Hosts::[atom()]) -> Nodes::[atom()].
+             Hosts::[atom()]) -> Nodes::[atom()].
 make_numbered_nodes(Label, EndNum, EndNum, [StartHost| _]) ->
-	[make_node(Label, EndNum, StartHost)];
+  [make_node(Label, EndNum, StartHost)];
 
 make_numbered_nodes(Label, StartNum, EndNum, [StartHost | RestHosts]) ->
-	[make_node(Label, StartNum, StartHost) | make_numbered_nodes(Label, StartNum+1, EndNum, RestHosts ++ [StartHost])].
+  [make_node(Label, StartNum, StartHost) | make_numbered_nodes(Label, StartNum+1, EndNum, RestHosts ++ [StartHost])].
 
 %%
 %% Local Functions

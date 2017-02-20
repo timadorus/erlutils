@@ -18,10 +18,6 @@
 %% Fixtures
 %%
 
-%% info_test_() ->
-%%     { setup, fun() -> ok end,
-%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
-
 initial_test_() ->
     { "some initial tests",
       setup,
@@ -46,5 +42,5 @@ initial_test_() ->
 %% Local Functions
 %%
 test_test_calc() ->
-	 _Ret = teu_perf_measure:test_calc("A Test", [1,2,3,4,5,6,7,8,9,10]),
-	ok.
+   _Ret = teu_perf_measure:test_calc("A Test", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+  ok.

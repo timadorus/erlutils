@@ -37,9 +37,9 @@ equal(Tree1, Tree2) when Tree1#node.val == Tree2#node.val ->
     lists:all(fun({C1, C2}) -> equal(C1, C2) end , Zip);
 
 %% handle the padded or deleted child cases
-equal(undefined,undefined) -> true;
+equal(undefined, undefined) -> true;
 
-equal(_,_) -> false.
+equal(_, _) -> false.
 
 %% add_child/3
 %% --------------------------------------------------------------------
@@ -113,8 +113,8 @@ set_data(Tree, Data) -> Tree#node{val = Data}.
 %% --------------------------------------------------------------------
 -spec node_count(Tree :: term()) -> pos_integer().
 %% --------------------------------------------------------------------
-node_count(#node{val = Val, children = Childs}) ->
-    lists:foldl(fun(Node, Sum) -> Sum+1 end, 1, Childs).
+node_count(#node{children = Children}) ->
+    array:foldl(fun(_Idx, _Child, Sum) -> Sum+1 end, 1, Children).
 
 
 %% ====================================================================

@@ -21,10 +21,6 @@
 %% Fixtures
 %%
 
-%% info_test_() ->
-%%     { setup, fun() -> ok end,
-%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
-
 initial_test_() ->
     { "some initial tests",
       setup,
@@ -59,24 +55,24 @@ test_read_config() ->
 
     application:set_env(teu_app_test, par1, 2),
     ?assertEqual({ok, 2}, teu_application:get_env(teu_app_test, par1, 3)),
-    
+
     ?assertEqual({ok, 3}, teu_application:get_env(teu_app_test, par2, 3)),
-    
+
     ok.
 
 -spec test_opt() -> ok.
 test_opt() ->
-    
+
 %%    ?debugMsg("starting opt"),
-    
-    Options = [register, {config, {1,2,3, [foo, bar]}}],
-    
+
+    Options = [register, {config, {1, 2, 3, [foo, bar]}}],
+
     ?assertEqual(true, teu_application:opt(register, Options, false)),
 
-    ?assertEqual({1,2,3, [foo, bar]}, teu_application:opt(config, Options, [])),
+    ?assertEqual({1, 2, 3, [foo, bar]}, teu_application:opt(config, Options, [])),
 
     ?assertEqual(no_sir, teu_application:opt(invalid, Options, no_sir)),
-    
+
     ?assertEqual(false, teu_application:opt(invalid, Options)),
 
     ?assertEqual(true, teu_application:opt(register, Options)),
@@ -94,8 +90,8 @@ test_set_opts() ->
                 , {[{a, 2}], [{a, 1}], [{a, 2}]}
                 , {[{a, 1}], [{a, 2}, {b, 2}], [{a, 1}, {b, 2}]}
                 ],
-    
-    lists:map(fun({NewList, Opts, Expected}) -> 
+
+    lists:map(fun({NewList, Opts, Expected}) ->
                       ?assertEqual(Expected, teu_application:set_opts(NewList, Opts))
               end, TestCases),
 

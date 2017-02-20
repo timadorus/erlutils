@@ -21,10 +21,6 @@
 %% Fixtures
 %%
 
-%% info_test_() ->
-%%     { setup, fun() -> ok end,
-%%       fun() -> ?debugFmt("~n############################################~n      starting ~p~n############################################~n  ", [?MODULE]) end }.
-
 initial_test_() ->
     { "some initial tests",
       setup,
@@ -51,7 +47,7 @@ initial_test_() ->
 %% Local Functions
 %%
 test_split_node() ->
-    ?assertMatch({"foo","bar"}, teu_nodes:split_node('foo@bar')),
+    ?assertMatch({"foo", "bar"}, teu_nodes:split_node('foo@bar')),
     ?assertMatch({foo, bar}, teu_nodes:split_node_to_atom('foo@bar')).
 
 test_make_numbered_nodes() ->
@@ -59,14 +55,14 @@ test_make_numbered_nodes() ->
                  teu_nodes:make_numbered_nodes(node, 1, 3, [hosta, hostb])),
 
     {_NodeName, Host} = teu_nodes:split_node(node()),
-    Node = list_to_atom("node1@" ++ Host), 
+    Node = list_to_atom("node1@" ++ Host),
 %%     ?debugHere,
     ?assertEqual([Node], teu_nodes:make_numbered_nodes(node, 1, 1)),
     ok.
 
 test_make_numbered_short_nodes() ->
     {ok, LocalHost} = inet:gethostname(),
-    Node = list_to_atom("node1@" ++ LocalHost), 
+    Node = list_to_atom("node1@" ++ LocalHost),
 
 %%     ?debugHere,
     ?assertEqual([Node], teu_nodes:make_numbered_short_nodes(node, 1, 1)),
