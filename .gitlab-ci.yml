@@ -1,0 +1,21 @@
+#
+# setup erlang build system
+#
+image: erlang:latest
+
+before_script:
+  # get rebar
+  - curl -o rebar3 https://s3.amazonaws.com/rebar3/rebar3
+  - chmod +x rebar3
+
+stages:
+  - build
+
+job_build:
+  stage: build
+  script:
+    - ./rebar3 eunit
+    - ./rebar3 cover
+    - ./rebar3 as test dialyzer
+
+
